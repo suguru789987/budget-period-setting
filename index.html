@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>予算期間設定 仕様モック v1.1</title>
+  <title>予算期間設定 仕様モック v1.2（最新master 2026-04-09 準拠）</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; background: #f5f8fa; color: #333; }
@@ -157,7 +157,8 @@
 <div class="mock-nav">
   <div class="nav-top">
     <h1>予算期間設定 仕様モック</h1>
-    <span class="version">v1.1</span>
+    <span class="version">v1.2</span>
+    <span style="font-size:10px; color:rgba(255,255,255,0.4); margin-left:12px;">最新master 2026-04-09 準拠</span>
   </div>
   <div class="nav-tabs">
     <div class="nav-tab active" onclick="showPage('overview')">概要</div>
@@ -175,12 +176,15 @@
     <p class="subtitle">会社情報画面に予算開始月を設定し、設定機能と表示画面で一貫した予算期間を適用する</p>
 
     <div class="info-box">
-      <strong>課題:</strong> 現状、設定側（月次予算設定・費用設定）と表示側（予実対比・年間予実対比・月次集計・感度分析）で一貫した予算開始月の設定がない。全画面がカレンダー年（1月〜12月）をハードコードしている。<br>
-      <strong>解決:</strong> 会社情報画面（会社スコープ）に「予算開始月」を追加し、全店舗の予算関連画面で参照する。
+      <strong>課題:</strong> 現状、予算の表示期間は「店舗作成日〜現在+3年」の全月リストから手動選択する形式。予算年度（会計年度）の概念がなく、4月始まりや10月始まりなどの年度単位で管理する仕組みがない。<br>
+      <strong>解決:</strong> 会社情報画面（会社スコープ）に「予算開始月」を追加し、全店舗の予算関連画面のデフォルト表示期間を予算年度に合わせる。
     </div>
 
     <div class="ref-note">
-      <strong>参考:</strong> 既存の <code>ClosingFiscalYearSetting</code> モデル（決算期設定）に同様の <code>fiscal_year_start_month</code> カラムが存在する。予算期間は決算期とは独立した設定として Company モデルに直接追加する。
+      <strong>最新master (2026-04-09) の状態:</strong><br>
+      - <code>annual_budget_summary.rb</code>: Sorbet型付きにリファクタリング済み。<code>(1..12)</code>ハードコードは解消済み。<code>generate_year_months_list</code>で動的月リスト生成<br>
+      - <code>monthly_budgets_controller.rb</code>: <code>start_month</code>/<code>end_month</code>パラメータで任意範囲選択可能<br>
+      - <code>closing_fiscal_year_settings</code>テーブルは schema に存在しない（migrate_temp のみ、未デプロイ）
     </div>
 
     <h3 class="section-title">影響サマリー</h3>
@@ -190,30 +194,35 @@
         <th>カテゴリ</th>
         <th>影響画面数</th>
         <th>影響レベル</th>
+        <th>備考（最新masterとの差分）</th>
       </tr>
       <tr>
         <td><span class="impact-level new">会社</span></td>
         <td>設定（新規）</td>
         <td>1画面</td>
         <td><span class="impact-level new">新規追加</span></td>
+        <td>profile.html.haml は最新masterでも変更なし</td>
       </tr>
       <tr>
         <td><span class="impact-level" style="background:#eef0ff;color:#5264f0;">会社</span></td>
         <td>表示</td>
         <td>1画面</td>
-        <td><span class="impact-level high">高</span></td>
+        <td><span class="impact-level medium">中</span></td>
+        <td>set_term concernでリファクタリング済み。月セレクタの改善のみ</td>
       </tr>
       <tr>
         <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
         <td>設定</td>
         <td>3画面</td>
-        <td><span class="impact-level high">高</span>〜<span class="impact-level medium">中</span></td>
+        <td><span class="impact-level high">高</span>〜<span class="impact-level low">低</span></td>
+        <td>予算設定は start_month/end_month 対応済みでデフォルト値変更のみ</td>
       </tr>
       <tr>
         <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
         <td>表示</td>
-        <td>3画面</td>
-        <td><span class="impact-level high">高</span>〜<span class="impact-level medium">中</span></td>
+        <td>4画面</td>
+        <td><span class="impact-level high">高</span>〜<span class="impact-level low">低</span></td>
+        <td>年間予算サマリーは年跨ぎ対応済み。費用履歴のみカレンダー年固定</td>
       </tr>
     </table>
 
@@ -490,31 +499,26 @@
             <span class="file-path">app/controllers/manager/shops/monthly_budgets_controller.rb</span>
             <span class="file-path" style="margin-left:4px;">app/views/manager/shops/monthly_budgets/index.html.haml</span>
           </p>
+          <div class="info-box" style="margin-bottom:12px;">
+            <strong>最新masterの変更点:</strong> <code>generate_year_months_list</code>で店舗作成日〜now+3年の全月リスト生成。<code>start_month</code>/<code>end_month</code>パラメータで任意範囲選択可能。デフォルトは今年1月〜12月。
+          </div>
           <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>現状</th><th>変更後</th></tr>
+            <tr><th>項目</th><th>種別</th><th>現状（最新master）</th><th>変更後</th></tr>
             <tr>
-              <td>年ナビゲーション（前年/翌年）</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td>カレンダー年で「2026年」表示</td>
-              <td>予算年度で「2026年度」表示（4月開始なら2026/4〜2027/3）</td>
-            </tr>
-            <tr>
-              <td>月リスト表示範囲</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td><code>start_month.upto(12)</code> （1月〜12月固定）</td>
-              <td>budget_start_month起点の12ヶ月ループに変更</td>
-            </tr>
-            <tr>
-              <td>year_monthクエリ範囲</td>
+              <td>デフォルト表示範囲</td>
               <td><span class="change-tag modify">修正</span>ロジック</td>
-              <td><code>year*100</code> 〜 <code>(year+1)*100</code></td>
-              <td><code>year*100+start_month</code> 〜 <code>(year+1)*100+(start_month-1)</code></td>
+              <td>今年1月〜12月を<code>find_index</code>で検索</td>
+              <td><code>company.budget_months(year)</code>の範囲をデフォルトに</td>
             </tr>
             <tr>
-              <td>各月の「設定」リンク</td>
-              <td><span class="change-tag modify">修正</span>設定</td>
-              <td>年月固定でリンク生成</td>
-              <td>予算年度の年月でリンク生成</td>
+              <td>start_month/end_monthパラメータ</td>
+              <td><span class="change-tag keep">維持</span>ロジック</td>
+              <td colspan="2">ユーザー指定時はそのまま使用（変更不要）</td>
+            </tr>
+            <tr>
+              <td>generate_year_months_list</td>
+              <td><span class="change-tag keep">維持</span>ロジック</td>
+              <td colspan="2">全月リスト生成は変更不要（年跨ぎ対応済み）</td>
             </tr>
             <tr>
               <td>月次利益 / 仕入比率 / PA人件費比率 / 客単価</td>
@@ -537,57 +541,38 @@
         <div class="screen-card-body">
           <p style="font-size:11px; color:#666; margin-bottom:10px;">
             <span class="file-path">app/controllers/concerns/annual_budget_summary.rb</span>
-            <span class="file-path" style="margin-left:4px;">app/views/manager/shops/monthly_budgets/annual_budget_summary.html.haml</span>
+            <span class="file-path" style="margin-left:4px;">app/views/manager/shops/monthly_budgets/index.html.haml</span>
           </p>
+          <div class="info-box" style="margin-bottom:12px;">
+            <strong>最新masterの変更点:</strong> <code>(1..12)</code>ハードコード解消済み。<code>build_annual_budget_summary(from_date, to_date)</code>で任意期間対応。<code>@year_months</code>配列で年跨ぎも対応済み。期間累積計算(<code>calculate_period_totals</code>)も追加済み。
+          </div>
           <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>現状</th><th>変更後</th></tr>
+            <tr><th>項目</th><th>種別</th><th>現状（最新master）</th><th>変更後</th></tr>
             <tr>
-              <td>月ループ</td>
+              <td>build_annual_budget_summaryのデフォルト期間</td>
               <td><span class="change-tag modify">修正</span>ロジック</td>
-              <td><code>(1..12).each do |month|</code></td>
-              <td><code>company.budget_months(year).each</code></td>
+              <td>monthly_budgets_controller#indexから今年1月〜12月のfrom/toを渡す</td>
+              <td>company.budget_months(year)のfirst/lastのdateを渡す</td>
             </tr>
             <tr>
-              <td>ヘッダ列（月表示）</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td><code>(1..12).map { "#{year}年#{m}月" }</code></td>
-              <td>予算年度の月順に変更（4月開始なら4月〜翌3月）</td>
+              <td>generate_year_months_list</td>
+              <td><span class="change-tag keep">維持</span>ロジック</td>
+              <td colspan="2">from/to日付を受け取り月リスト生成（年跨ぎ対応済み）</td>
             </tr>
             <tr>
-              <td>year_month計算</td>
-              <td><span class="change-tag modify">修正</span>ロジック</td>
-              <td><code>@current_date.year * 100 + month</code></td>
-              <td>年跨ぎ対応: <code>budget_month[:year] * 100 + budget_month[:month]</code></td>
+              <td>月ループ（@year_months.each_with_index）</td>
+              <td><span class="change-tag keep">維持</span>ロジック</td>
+              <td colspan="2">動的月リストで既に対応済み</td>
             </tr>
             <tr>
-              <td>月次目標利益</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td>1月〜12月の配列index</td>
-              <td>予算開始月起点のindex</td>
+              <td>ヘッダ列・データ行</td>
+              <td><span class="change-tag keep">維持</span>表示</td>
+              <td colspan="2">@display_year_monthsから動的生成（変更不要）</td>
             </tr>
             <tr>
-              <td>目標FD仕入費率</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td>同上</td>
-              <td>同上</td>
-            </tr>
-            <tr>
-              <td>目標PA人件費比率</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td>同上</td>
-              <td>同上</td>
-            </tr>
-            <tr>
-              <td>月間売上目標</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td>同上</td>
-              <td>同上</td>
-            </tr>
-            <tr>
-              <td>FL原価 / 固定費 / 営業利益</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td>同上</td>
-              <td>同上</td>
+              <td>期間累積（calculate_period_totals）</td>
+              <td><span class="change-tag keep">維持</span>ロジック</td>
+              <td colspan="2">表示範囲の合計を自動計算（変更不要）</td>
             </tr>
           </table>
         </div>
@@ -824,16 +809,16 @@
         <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
         <td>設定</td>
         <td><span class="impact-level high">高</span></td>
-        <td>年ナビ、月リスト範囲、year_month範囲、設定リンク</td>
-        <td>月次利益、仕入比率、PA人件費比率、客単価</td>
+        <td>デフォルト表示範囲（今年1月〜12月→予算年度）</td>
+        <td>generate_year_months_list、start/endパラメータ、予算データ</td>
       </tr>
       <tr>
         <td><strong>年間予算サマリー</strong></td>
         <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
         <td>表示</td>
         <td><span class="impact-level high">高</span></td>
-        <td>月ループ、ヘッダ列、year_month計算、全データ行のindex</td>
-        <td>（全項目が表示順序の影響を受ける）</td>
+        <td>build_annual_budget_summaryのデフォルトfrom/to</td>
+        <td>月ループ、ヘッダ、データ計算（年跨ぎ対応済み）</td>
       </tr>
       <tr>
         <td><strong>費用設定: 履歴</strong></td>
@@ -933,21 +918,74 @@
     <h2>実装詳細</h2>
     <p class="subtitle">DB変更、モデルメソッド、コントローラ修正の詳細</p>
 
-    <h3 class="section-title">1. DB Migration</h3>
+    <h3 class="section-title">1. 現在のデータ構造（最新master 2026-04-09）</h3>
     <div class="rakmy-card" style="padding: 20px;">
-      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code>class AddBudgetStartMonthToCompanies < ActiveRecord::Migration[7.2]
+      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code># companies テーブル（schema.rb より）
+create_table "companies" do |t|
+  t.string  "name"
+  t.string  "phone", "representive", "zipcode", "address", "building", "email"
+  t.integer "prefecture_id"
+  t.string  "price_version"
+  # 請求先情報
+  t.string  "billing_zipcode", "billing_address", "billing_building"
+  t.integer "billing_prefecture_id"
+  t.string  "billing_staff_email", "billing_staff_name", "billing_staff_phone"
+  # トライアル・プラン
+  t.date    "trial_expired_on", "extra_trial_expired_on"
+  t.boolean "force_enterprise_enabled", default: false
+  t.boolean "is_infomart_api", default: false
+  t.boolean "is_vendor_billing_on", default: false
+  # 外部連携
+  t.string  "scalebase_customer_id", "infomart_client_id", "infomart_client_secret"
+end
+
+# monthly_budgets テーブル
+create_table "monthly_budgets" do |t|
+  t.integer "shop_id",            null: false
+  t.integer "year_month",         null: false  # YYYYMM形式 (例: 202604)
+  t.integer "profit",             default: 0
+  t.decimal "food_cost_rate",     precision: 5, scale: 1
+  t.decimal "labor_cost_rate",    precision: 5, scale: 1
+  t.integer "sales_per_customer", default: 0
+  t.float   "sales_ratio_lunch", "sales_ratio_dinner"
+  t.float   "sales_ratio_food", "sales_ratio_drink", "sales_ratio_other"
+  t.index   ["shop_id", "year_month"], unique: true
+end
+
+# shop_rents テーブル（地代家賃 - RentConfigurationから移行済み）
+create_table "shop_rents" do |t|
+  t.integer "shop_id",        null: false
+  t.integer "rent_type",      default: 0    # enum
+  t.integer "condition_type", default: 0    # enum
+  t.integer "fixed_rent",     default: 0
+  t.decimal "rate",           precision: 5, scale: 2
+  t.integer "threshold"
+  t.date    "effective_from", null: false
+  t.date    "effective_until"               # オーバーライド用
+  t.decimal "target_rate",    precision: 5, scale: 2
+  t.integer "min_guarantee"
+end
+
+# ※ closing_fiscal_year_settings は schema に存在しない（未デプロイ）</code></pre>
+    </div>
+
+    <h3 class="section-title">2. DB Migration（追加1カラムのみ）</h3>
+    <div class="rakmy-card" style="padding: 20px;">
+      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code>class AddBudgetStartMonthToCompanies &lt; ActiveRecord::Migration[7.2]
   def change
-    add_column :companies, :budget_start_month, :integer, default: 1
+    add_column :companies, :budget_start_month, :integer, default: 1,
+               comment: "予算開始月（1-12）"
   end
 end</code></pre>
     </div>
 
-    <h3 class="section-title">2. Company モデル</h3>
+    <h3 class="section-title">3. Company モデル（Sorbet対応）</h3>
     <div class="rakmy-card" style="padding: 20px;">
-      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code>class Company < ApplicationRecord
+      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code># typed: strict
+class Company &lt; ApplicationRecord
   validates :budget_start_month, inclusion: { in: 1..12 }, allow_nil: true
 
-  # 指定年の予算年度の開始・終了year_monthを返す
+  sig { params(year: Integer).returns(T::Hash[Symbol, Integer]) }
   def budget_period(year)
     s = budget_start_month || 1
     if s == 1
@@ -957,22 +995,22 @@ end</code></pre>
     end
   end
 
-  # 予算年度の月リスト（表示順）を返す
+  sig { params(year: Integer).returns(T::Array[T::Hash[Symbol, T.untyped]]) }
   def budget_months(year)
     s = budget_start_month || 1
     (0..11).map do |offset|
       m = ((s - 1 + offset) % 12) + 1
-      y = offset < (13 - s) ? year : year + 1
-      { year: y, month: m, year_month: y * 100 + m }
+      y = offset &lt; (13 - s) ? year : year + 1
+      { year: y, month: m, year_month: y * 100 + m,
+        date: Time.zone.parse("#{y}-#{m}-01") }
     end
   end
 end</code></pre>
     </div>
 
-    <h3 class="section-title">3. Companies Controller</h3>
+    <h3 class="section-title">4. Companies Controller</h3>
     <div class="rakmy-card" style="padding: 20px;">
-      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code># company_params に追加
-def company_params
+      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code>def company_params
   params.require(:company).permit(
     :name, :representive, :zipcode, :prefecture_id,
     :address, :building, :phone, :email,
@@ -981,27 +1019,51 @@ def company_params
 end</code></pre>
     </div>
 
-    <h3 class="section-title">4. Annual Budget Summary Concern（修正例）</h3>
+    <h3 class="section-title">5. Monthly Budgets Controller（修正例 - デフォルト範囲変更）</h3>
     <div class="rakmy-card" style="padding: 20px;">
-      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code># Before:
-(1..12).each do |month|
-  month_index = month - 1
-  year_month = @current_date.year * 100 + month
-  # ...
+      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code># 現状（最新master）:
+if params[:start_month].blank? && params[:end_month].blank?
+  current_year = Time.zone.now.year
+  @default_start_index = @all_year_months.find_index {
+    |ym| ym[:year] == current_year && ym[:month] == 1  # ← 1月固定
+  } || 0
+  @default_end_index = @all_year_months.find_index {
+    |ym| ym[:year] == current_year && ym[:month] == 12  # ← 12月固定
+  }
 end
 
-# After:
-company = Company.find(@current_scope.company_id)
-budget_months = company.budget_months(@current_date.year)
-budget_months.each_with_index do |bm, month_index|
-  year_month = bm[:year_month]
-  from_date = Date.new(bm[:year], bm[:month], 1)
-  to_date = from_date.end_of_month
-  # ...
+# 変更後:
+if params[:start_month].blank? && params[:end_month].blank?
+  company = Company.find(@current_scope.company_id)
+  budget_months = company.budget_months(Time.zone.now.year)
+  start_ym = budget_months.first
+  end_ym = budget_months.last
+  @default_start_index = @all_year_months.find_index {
+    |ym| ym[:year] == start_ym[:year] && ym[:month] == start_ym[:month]
+  } || 0
+  @default_end_index = @all_year_months.find_index {
+    |ym| ym[:year] == end_ym[:year] && ym[:month] == end_ym[:month]
+  }
 end</code></pre>
     </div>
 
-    <h3 class="section-title">5. 権限</h3>
+    <h3 class="section-title">6. Monthly Cost Histories Controller（修正例 - 年範囲変更）</h3>
+    <div class="rakmy-card" style="padding: 20px;">
+      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code># 現状（最新master）:
+@current_year = params[:year].present? ?
+  Time.zone.parse("#{params[:year]}-01-01").to_date : Time.zone.now.to_date
+from = @current_year.beginning_of_year.strftime('%Y%m').to_i  # ← 1月固定
+to = @current_year.end_of_year.strftime('%Y%m').to_i          # ← 12月固定
+
+# 変更後:
+company = Company.find(@current_scope.company_id)
+year = params[:year].present? ? params[:year].to_i : Time.zone.now.year
+period = company.budget_period(year)
+from = period[:from]  # 例: 202604
+to = period[:to]      # 例: 202703</code></pre>
+    </div>
+
+    <h3 class="section-title">7. 権限</h3>
     <table class="spec-table">
       <tr><th>ロール</th><th>閲覧</th><th>変更</th></tr>
       <tr><td>管理（Master）</td><td>&#10003;</td><td>&#10003;</td></tr>
@@ -1009,14 +1071,6 @@ end</code></pre>
       <tr><td>店長（Shop Manager）</td><td>&#10003;</td><td>&#10005;</td></tr>
       <tr><td>店員（Staff）</td><td>&#10005;</td><td>&#10005;</td></tr>
     </table>
-
-    <h3 class="section-title">6. 参考: 既存 ClosingFiscalYearSetting</h3>
-    <div class="ref-note">
-      <strong>決算期設定との違い:</strong><br>
-      - <code>ClosingFiscalYearSetting</code> は独立テーブルで <code>fiscal_year_start_month</code> を持つ（デフォルト: 4月）<br>
-      - 予算期間設定は <code>companies.budget_start_month</code> として直接追加（シンプルな1カラム追加）<br>
-      - 将来的に両者を統合する場合は、決算期設定の <code>fiscal_year_start_month</code> と予算開始月を連動させることも検討可能
-    </div>
   </div>
 </div>
 
