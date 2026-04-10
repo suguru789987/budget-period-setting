@@ -4,152 +4,117 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>予算期間設定 仕様モック v1.3（最新master 2026-04-09 準拠 / 全画面分析済み）</title>
+  <title>予算期間設定 仕様モック v1.5</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; background: #f5f8fa; color: #333; }
 
-    /* Mock Navigation */
     .mock-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: #1a1a2e; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
     .nav-top { display: flex; align-items: center; height: 44px; padding: 0 20px; }
-    .nav-top h1 { font-size: 13px; font-weight: 600; margin-right: 16px; }
-    .nav-top .version { font-size: 10px; background: #2ec4a5; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .nav-top h1 { font-size: 13px; font-weight: 600; margin-right: 12px; }
+    .nav-top .version { font-size: 10px; background: #2ec4a5; padding: 2px 8px; border-radius: 10px; font-weight: 600; margin-right: 12px; }
+    .nav-top .note { font-size: 10px; color: rgba(255,255,255,0.4); }
     .nav-tabs { display: flex; gap: 1px; overflow-x: auto; padding: 0 20px; background: rgba(0,0,0,0.15); }
     .nav-tab { color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 500; padding: 9px 12px; white-space: nowrap; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
     .nav-tab:hover { color: rgba(255,255,255,0.8); }
     .nav-tab.active { color: #fff; border-bottom-color: #2ec4a5; }
+    .nav-sep { width: 1px; height: 18px; background: rgba(255,255,255,0.1); margin: auto 4px; flex-shrink: 0; }
 
-    .page { display: none; padding-top: 86px; min-height: 100vh; }
+    .page { display: none; padding-top: 76px; min-height: 100vh; }
     .page.active { display: block; }
 
-    /* Overview */
-    .overview { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    .overview h2 { font-size: 20px; margin-bottom: 4px; }
-    .overview .subtitle { color: #666; font-size: 13px; margin-bottom: 24px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .page-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .page-subtitle { font-size: 12px; color: #888; margin-bottom: 20px; }
 
+    .scope-tag { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
+    .scope-tag.shop { background: #e8f8f5; color: #1a9e7e; }
+    .scope-tag.company { background: #eef0ff; color: #5264f0; }
+    .scope-tag.new { background: #f1416c; color: #fff; }
+
+    /* Info boxes */
     .info-box { background: linear-gradient(135deg, #e8f8f5, #eef0ff); border: 2px solid #2ec4a5; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; font-size: 12px; line-height: 1.8; }
     .info-box strong { color: #1a9e7e; }
+    .callout { margin: 12px 0; padding: 12px 16px; border-radius: 8px; font-size: 11px; line-height: 1.7; }
+    .callout.green { background: #f0faf7; border: 1px solid #d4efea; color: #1a9e7e; }
 
-    .warn-box { background: #fff8e1; border: 2px solid #ffc107; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; font-size: 12px; line-height: 1.8; }
-    .warn-box strong { color: #e65100; }
-
+    /* Spec tables */
     .spec-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
     .spec-table th { background: #f8f9fa; text-align: left; padding: 9px 12px; font-size: 11px; font-weight: 600; border-bottom: 1px solid #eee; }
     .spec-table td { padding: 9px 12px; font-size: 11px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
-    .spec-table tr:last-child td { border-bottom: none; }
     .spec-table code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 10px; }
 
-    .flow-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .flow-card { background: #fff; border-radius: 10px; padding: 20px; border: 2px solid #e8e8e8; cursor: pointer; transition: all 0.2s; }
-    .flow-card:hover { border-color: #2ec4a5; box-shadow: 0 4px 12px rgba(46,196,165,0.1); }
-    .flow-card .badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-bottom: 8px; }
-    .flow-card .badge.setting { background: #e8f8f5; color: #1a9e7e; }
-    .flow-card .badge.display { background: #eef0ff; color: #5264f0; }
-    .flow-card .badge.db { background: #fef3e2; color: #e67e22; }
-    .flow-card .badge.none { background: #f5f5f5; color: #999; }
-    .flow-card h3 { font-size: 14px; margin-bottom: 4px; }
-    .flow-card p { font-size: 11px; color: #666; line-height: 1.5; }
+    .section-title { font-size: 15px; font-weight: 700; margin: 28px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #e8e8e8; }
 
-    /* Rakmy-like UI */
-    .rakmy-container { max-width: 1100px; margin: 0 auto; padding: 24px; }
-    .rakmy-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-    .rakmy-header h1 { font-size: 16px; font-weight: 700; color: #181c32; }
-    .rakmy-header .help-icon { width: 20px; height: 20px; background: #e8e8e8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999; cursor: pointer; }
-    .rakmy-breadcrumb { font-size: 11px; color: #999; margin-bottom: 24px; }
-    .rakmy-breadcrumb a { color: #999; text-decoration: none; }
-    .rakmy-breadcrumb a:hover { color: #2ec4a5; }
+    /* Rakmy screen components */
+    .rakmy-screen { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 24px; border: 2px solid #e8e8e8; }
+    .screen-header { background: #f8f9fa; padding: 14px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; }
+    .screen-header h3 { font-size: 14px; font-weight: 700; color: #181c32; }
+    .screen-header .breadcrumb { font-size: 10px; color: #999; }
+    .screen-toolbar { padding: 12px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f0f0f0; }
+    .screen-body { padding: 16px 20px; overflow-x: auto; }
 
-    .rakmy-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 24px; }
-    .rakmy-section-header { padding: 20px 28px; border-bottom: 1px solid #eff2f5; }
-    .rakmy-section-header h3 { font-size: 14px; font-weight: 700; color: #181c32; }
-    .rakmy-form-body { padding: 28px; }
+    .period-select { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+    .sel-box { padding: 6px 10px; border: 1px solid #e4e6ef; border-radius: 6px; font-size: 12px; background: #fff; color: #333; }
+    .sel-box.highlight { background: #e8f8f5; border-color: #2ec4a5; font-weight: 600; color: #1a9e7e; }
+    .sep { color: #999; }
+    .date-range { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid #e4e6ef; border-radius: 6px; font-size: 12px; background: #fff; }
 
+    .btn-sm { padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; border: none; cursor: pointer; }
+    .btn-primary { background: #2ec4a5; color: #fff; }
+    .btn-outline { background: #fff; color: #2ec4a5; border: 1px solid #2ec4a5; }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .data-table th { background: #f8f9fa; padding: 8px 10px; text-align: center; font-weight: 600; border: 1px solid #eee; white-space: nowrap; color: #666; }
+    .data-table th.hl { background: #e8f8f5; color: #1a9e7e; }
+    .data-table td { padding: 8px 10px; text-align: right; border: 1px solid #eee; white-space: nowrap; }
+    .data-table td.lc { text-align: left; font-weight: 600; color: #3f4254; background: #fafbfc; }
+    .data-table td.pos { color: #2ec4a5; }
+    .data-table td.neg { color: #f1416c; }
+
+    /* Company info form */
     .form-row { display: flex; align-items: flex-start; margin-bottom: 24px; }
     .form-row:last-child { margin-bottom: 0; }
     .form-label { width: 260px; flex-shrink: 0; padding-top: 10px; font-size: 13px; font-weight: 600; color: #3f4254; }
-    .form-label .required { color: #f1416c; margin-left: 2px; }
+    .form-label .req { color: #f1416c; margin-left: 2px; }
     .form-field { flex: 1; }
     .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e4e6ef; border-radius: 8px; font-size: 13px; background: #f5f8fa; color: #5e6278; outline: none; }
-    .form-input.disabled { background: #f5f8fa; color: #a1a5b7; cursor: not-allowed; }
-    .form-select { width: 100%; padding: 10px 14px; border: 1px solid #e4e6ef; border-radius: 8px; font-size: 13px; background: #f5f8fa; color: #5e6278; outline: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; }
-    .form-select:focus { border-color: #2ec4a5; background-color: #fff; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    .form-select { width: 100%; max-width: 200px; padding: 10px 14px; border: 1px solid #e4e6ef; border-radius: 8px; font-size: 13px; background: #f5f8fa; color: #5e6278; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; }
     .form-hint { font-size: 11px; color: #a1a5b7; margin-top: 6px; }
     .valid-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #2ec4a5; font-size: 14px; }
     .input-wrapper { position: relative; }
     .input-wrapper .form-input { padding-right: 36px; }
-
     .budget-preview { margin-top: 10px; padding: 12px 16px; background: #f0faf7; border: 1px solid #d4efea; border-radius: 8px; font-size: 12px; color: #1a9e7e; display: flex; align-items: center; gap: 8px; }
     .budget-preview .period { font-weight: 600; }
-
+    .section-header { padding: 20px 28px; border-bottom: 1px solid #eff2f5; position: relative; }
+    .section-header h4 { font-size: 14px; font-weight: 700; color: #181c32; }
+    .new-badge { position: absolute; top: 16px; right: 28px; background: #f1416c; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+    .highlight-bg { background: #fffbf0; border-left: 3px solid #ffc107; }
+    .form-body { padding: 28px; }
     .form-footer { display: flex; justify-content: flex-end; padding: 20px 28px; border-top: 1px solid #eff2f5; }
-    .btn-primary { background: #2ec4a5; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    .btn-primary:hover { background: #27b094; }
 
-    .new-section { position: relative; }
-    .new-badge { position: absolute; top: 16px; right: 28px; background: #f1416c; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; }
-    .highlight-area { background: #fffbf0; border-left: 3px solid #ffc107; }
+    .year-nav { display: flex; align-items: center; gap: 12px; font-size: 12px; }
+    .year-nav .label { font-size: 14px; font-weight: 700; color: #1a9e7e; }
+    .year-nav .arrow { color: #999; cursor: pointer; }
 
-    /* Impact Map */
-    .scope-section { margin-bottom: 32px; }
-    .scope-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 12px 16px; border-radius: 10px; }
-    .scope-header.company { background: #eef0ff; border: 2px solid #5264f0; }
-    .scope-header.shop { background: #e8f8f5; border: 2px solid #2ec4a5; }
-    .scope-header h3 { font-size: 15px; font-weight: 700; }
-    .scope-header .scope-badge { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; color: #fff; }
-    .scope-header .scope-badge.company { background: #5264f0; }
-    .scope-header .scope-badge.shop { background: #2ec4a5; }
+    .month-selector-demo { font-size: 10px; color: #1a9e7e; padding: 8px 12px; background: #f0faf7; border-radius: 6px; margin-top: 8px; }
 
-    .screen-card { background: #fff; border-radius: 10px; border: 1px solid #e8e8e8; margin-bottom: 12px; overflow: hidden; }
-    .screen-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; cursor: pointer; transition: background 0.2s; }
-    .screen-card-header:hover { background: #fafbfc; }
-    .screen-card-header h4 { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-    .screen-card-header .arrow { font-size: 12px; color: #999; transition: transform 0.2s; }
-    .screen-card-header .arrow.open { transform: rotate(90deg); }
+    .kpi-grid { display: grid; gap: 10px; margin-bottom: 12px; }
+    .kpi-grid.cols5 { grid-template-columns: repeat(5, 1fr); }
+    .kpi-grid.cols3 { grid-template-columns: repeat(3, 1fr); }
+    .kpi-card { background: #f8f9fa; border-radius: 8px; padding: 12px; }
+    .kpi-card .kpi-label { font-size: 9px; color: #999; }
+    .kpi-card .kpi-value { font-size: 16px; font-weight: 700; margin-top: 2px; }
+    .kpi-card .kpi-target { font-size: 10px; color: #999; }
+    .kpi-card .kpi-sub { font-size: 10px; color: #666; margin-top: 2px; }
+
+    /* Impact summary */
     .impact-level { font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
     .impact-level.high { background: #fce4ec; color: #c62828; }
     .impact-level.medium { background: #fff3e0; color: #e65100; }
     .impact-level.low { background: #e8f5e9; color: #2e7d32; }
     .impact-level.new { background: #e8f8f5; color: #1a9e7e; }
     .impact-level.none { background: #f5f5f5; color: #999; }
-    .screen-card-body { display: none; padding: 0 20px 16px; }
-    .screen-card-body.open { display: block; }
-    .screen-card-body .item-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-    .screen-card-body .item-table th { background: #f8f9fa; padding: 7px 10px; text-align: left; font-weight: 600; border-bottom: 1px solid #eee; }
-    .screen-card-body .item-table td { padding: 7px 10px; border-bottom: 1px solid #f5f5f5; }
-    .screen-card-body .item-table tr:last-child td { border-bottom: none; }
-    .change-tag { display: inline-block; font-size: 9px; font-weight: 600; padding: 1px 6px; border-radius: 4px; margin-right: 4px; }
-    .change-tag.modify { background: #fff3e0; color: #e65100; }
-    .change-tag.add { background: #e8f8f5; color: #1a9e7e; }
-    .change-tag.keep { background: #f5f5f5; color: #999; }
-
-    .file-path { font-family: 'SF Mono', 'Menlo', monospace; font-size: 10px; color: #7c7c7c; background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
-
-    /* Comparison */
-    .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-    .comparison-box { background: #fff; border-radius: 10px; padding: 16px; border: 2px solid #e8e8e8; }
-    .comparison-box.before { border-color: #f1416c; }
-    .comparison-box.after { border-color: #2ec4a5; }
-    .comparison-box h4 { font-size: 12px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-    .comparison-box h4 .dot { width: 8px; height: 8px; border-radius: 50%; }
-    .comparison-box.before h4 .dot { background: #f1416c; }
-    .comparison-box.after h4 .dot { background: #2ec4a5; }
-    .month-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
-    .month-cell { text-align: center; padding: 6px 4px; border-radius: 6px; font-size: 10px; font-weight: 600; }
-    .month-cell.active { background: #e8f8f5; color: #1a9e7e; }
-    .month-cell.start { background: #2ec4a5; color: #fff; }
-
-    /* Annual table */
-    .annual-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-    .annual-table th { background: #f8f9fa; padding: 8px 6px; text-align: center; font-weight: 600; border: 1px solid #eee; white-space: nowrap; }
-    .annual-table td { padding: 8px 6px; text-align: right; border: 1px solid #eee; }
-    .annual-table td.label-cell { text-align: left; font-weight: 600; color: #3f4254; background: #fafbfc; white-space: nowrap; }
-    .annual-table th.start-month { background: #e8f8f5; color: #1a9e7e; }
-
-    .section-title { font-size: 15px; font-weight: 700; margin: 28px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #e8e8e8; }
-
-    /* Reference note */
-    .ref-note { background: #f3e5f5; border: 1px solid #ce93d8; border-radius: 8px; padding: 12px 16px; font-size: 11px; line-height: 1.7; margin-bottom: 20px; }
-    .ref-note strong { color: #7b1fa2; }
   </style>
 </head>
 <body>
@@ -157,939 +122,386 @@
 <div class="mock-nav">
   <div class="nav-top">
     <h1>予算期間設定 仕様モック</h1>
-    <span class="version">v1.3</span>
-    <span style="font-size:10px; color:rgba(255,255,255,0.4); margin-left:12px;">最新master 2026-04-09 準拠 / 全画面分析済み</span>
+    <span class="version">v1.5</span>
+    <span class="note">予算開始月: 4月設定時のイメージ</span>
   </div>
   <div class="nav-tabs">
-    <div class="nav-tab active" onclick="showPage('overview')">概要</div>
-    <div class="nav-tab" onclick="showPage('setting')">設定画面</div>
-    <div class="nav-tab" onclick="showPage('impact')">影響範囲マップ</div>
-    <div class="nav-tab" onclick="showPage('annual')">年間予算サマリー</div>
+    <div class="nav-tab active" onclick="showPage('overview')">概要・影響範囲</div>
+    <div class="nav-sep"></div>
+    <div class="nav-tab" onclick="showPage('company-info')">会社情報（設定）</div>
+    <div class="nav-sep"></div>
+    <div class="nav-tab" onclick="showPage('budget-list')">予算設定: 一覧</div>
+    <div class="nav-tab" onclick="showPage('annual')">年間予実対比</div>
+    <div class="nav-tab" onclick="showPage('cost-history')">費用設定: 履歴</div>
+    <div class="nav-tab" onclick="showPage('bva')">予実対比</div>
+    <div class="nav-tab" onclick="showPage('monthly')">月次集計</div>
+    <div class="nav-tab" onclick="showPage('progress')">進捗分析</div>
+    <div class="nav-tab" onclick="showPage('sensitivity')">感度分析</div>
+    <div class="nav-sep"></div>
     <div class="nav-tab" onclick="showPage('code')">実装詳細</div>
   </div>
 </div>
 
-<!-- ==================== Page 1: Overview ==================== -->
+<!-- ==================== 概要・影響範囲 ==================== -->
 <div id="page-overview" class="page active">
-  <div class="overview">
-    <h2>予算期間設定</h2>
-    <p class="subtitle">会社情報画面に予算開始月を設定し、設定機能と表示画面で一貫した予算期間を適用する</p>
+  <div class="container">
+    <div class="page-title">予算期間設定</div>
+    <div class="page-subtitle">会社情報画面に予算開始月を設定し、予算関連画面のデフォルト表示期間を予算年度に合わせる</div>
 
     <div class="info-box">
-      <strong>課題:</strong> 現状、予算の表示期間は「店舗作成日〜現在+3年」の全月リストから手動選択する形式。予算年度（会計年度）の概念がなく、4月始まりや10月始まりなどの年度単位で管理する仕組みがない。<br>
-      <strong>解決:</strong> 会社情報画面（会社スコープ）に「予算開始月」を追加し、全店舗の予算関連画面のデフォルト表示期間を予算年度に合わせる。
+      <strong>DB変更:</strong> <code>companies</code> テーブルに <code>budget_start_month :integer default:1</code> を1カラム追加するのみ。既存テーブルの変更なし。<br>
+      <strong>地代家賃との関係:</strong> 地代家賃の適用開始日（<code>effective_from</code>）とは独立。同期させない。
     </div>
 
-    <div class="ref-note">
-      <strong>最新master (2026-04-09) の状態:</strong><br>
-      - <code>annual_budget_summary.rb</code>: Sorbet型付きにリファクタリング済み。<code>(1..12)</code>ハードコードは解消済み。<code>generate_year_months_list</code>で動的月リスト生成<br>
-      - <code>monthly_budgets_controller.rb</code>: <code>start_month</code>/<code>end_month</code>パラメータで任意範囲選択可能<br>
-      - <code>closing_fiscal_year_settings</code>テーブルは schema に存在しない（migrate_temp のみ、未デプロイ）
-    </div>
+    <h3 class="section-title">全画面影響サマリー</h3>
 
-    <h3 class="section-title">影響サマリー</h3>
+    <h4 style="font-size:13px; margin:12px 0 8px; color:#5264f0;">会社スコープ</h4>
     <table class="spec-table">
-      <tr>
-        <th>スコープ</th>
-        <th>カテゴリ</th>
-        <th>影響画面数</th>
-        <th>影響レベル</th>
-        <th>備考（最新masterとの差分）</th>
-      </tr>
-      <tr>
-        <td><span class="impact-level new">会社</span></td>
-        <td>設定（新規）</td>
-        <td>1画面</td>
-        <td><span class="impact-level new">新規追加</span></td>
-        <td>profile.html.haml は最新masterでも変更なし</td>
-      </tr>
-      <tr>
-        <td><span class="impact-level" style="background:#eef0ff;color:#5264f0;">会社</span></td>
-        <td>表示</td>
-        <td>1画面</td>
-        <td><span class="impact-level medium">中</span></td>
-        <td>set_term concernでリファクタリング済み。月セレクタの改善のみ</td>
-      </tr>
-      <tr>
-        <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
-        <td>設定</td>
-        <td>3画面</td>
-        <td><span class="impact-level high">高</span>〜<span class="impact-level low">低</span></td>
-        <td>予算設定は start_month/end_month 対応済みでデフォルト値変更のみ</td>
-      </tr>
-      <tr>
-        <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
-        <td>表示</td>
-        <td>4画面</td>
-        <td><span class="impact-level high">高</span>〜<span class="impact-level low">低</span></td>
-        <td>年間予算サマリーは年跨ぎ対応済み。費用履歴のみカレンダー年固定</td>
-      </tr>
+      <tr><th>画面</th><th>メニュー</th><th>影響</th><th>変わるもの</th></tr>
+      <tr><td><strong>会社情報</strong></td><td>設定</td><td><span class="impact-level new">新規</span></td><td>予算開始月セレクト + プレビュー追加</td></tr>
+      <tr><td><strong>年間予実対比</strong></td><td>集計</td><td><span class="impact-level high">高</span></td><td>期間セレクタのデフォルト → 予算年度</td></tr>
+      <tr><td><strong>予実対比</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>期間セレクタの月選択範囲</td></tr>
+      <tr><td><strong>進捗分析</strong></td><td>詳細分析</td><td><span class="impact-level medium">中</span></td><td>月セレクタの年度グルーピング</td></tr>
+      <tr><td><strong>月次レポート</strong></td><td>集計</td><td><span class="impact-level low">低</span></td><td>月セレクタのグルーピング</td></tr>
+      <tr style="color:#999;"><td>ABC分析 / 商品別 / 曜日別 / 支払種別 / 仕入分析 / お支払い</td><td>-</td><td><span class="impact-level none">なし</span></td><td>-</td></tr>
     </table>
 
-    <div class="flow-cards">
-      <div class="flow-card" onclick="showPage('setting')">
-        <span class="badge setting">設定画面</span>
-        <h3>会社情報画面</h3>
-        <p>担当者メールアドレスの下に「予算期間設定」セクション新規追加。予算開始月をセレクトボックスで設定。</p>
-      </div>
-      <div class="flow-card" onclick="showPage('impact')">
-        <span class="badge db">影響範囲マップ</span>
-        <h3>全8画面の影響分析</h3>
-        <p>会社スコープ2画面・店舗スコープ6画面の影響項目を詳細に可視化。設定機能と表示機能を分離して整理。</p>
-      </div>
-      <div class="flow-card" onclick="showPage('annual')">
-        <span class="badge display">Before / After</span>
-        <h3>年間予算サマリー</h3>
-        <p>予算開始月による表示変化をインタラクティブにシミュレーション。</p>
-      </div>
-    </div>
+    <h4 style="font-size:13px; margin:12px 0 8px; color:#2ec4a5;">店舗スコープ</h4>
+    <table class="spec-table">
+      <tr><th>画面</th><th>メニュー</th><th>影響</th><th>変わるもの</th></tr>
+      <tr><td><strong>予算設定: 一覧</strong></td><td>予算設定</td><td><span class="impact-level high">高</span></td><td>期間セレクタのデフォルト → 予算年度</td></tr>
+      <tr><td><strong>年間予実対比</strong></td><td>集計</td><td><span class="impact-level high">高</span></td><td>期間セレクタのデフォルト → 予算年度</td></tr>
+      <tr><td><strong>費用設定: 履歴</strong></td><td>設定</td><td><span class="impact-level high">高</span></td><td>年ナビ → 年度ナビ、表示範囲変更</td></tr>
+      <tr><td><strong>予実対比</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>期間セレクタの月選択範囲</td></tr>
+      <tr><td><strong>月次集計</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>月セレクタの年度グルーピング</td></tr>
+      <tr><td><strong>月次レポート</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>月セレクタ + 12ヶ月テーブル範囲</td></tr>
+      <tr><td><strong>進捗分析</strong></td><td>詳細分析</td><td><span class="impact-level medium">中</span></td><td>月セレクタの年度グルーピング</td></tr>
+      <tr><td><strong>感度分析</strong></td><td>詳細分析</td><td><span class="impact-level medium">中</span></td><td>月セレクタの年度グルーピング</td></tr>
+      <tr><td><strong>月次予算設定</strong></td><td>予算設定</td><td><span class="impact-level low">低</span></td><td>月セレクタのデフォルト</td></tr>
+      <tr><td><strong>日次レポート</strong></td><td>集計</td><td><span class="impact-level low">低</span></td><td>期間セレクタ</td></tr>
+      <tr><td><strong>費用設定: 一覧</strong></td><td>設定</td><td><span class="impact-level low">低</span></td><td>なし（当月表示のみ）</td></tr>
+      <tr style="color:#999;"><td>ABC分析 / FD分析 / 流入分析 / 店舗情報 / 連携設定 / 休業日設定 / 地代家賃設定</td><td>-</td><td><span class="impact-level none">なし</span></td><td>-</td></tr>
+    </table>
   </div>
 </div>
 
-<!-- ==================== Page 2: Setting Screen ==================== -->
-<div id="page-setting" class="page">
-  <div class="rakmy-container">
-    <div class="rakmy-header">
-      <h1>会社情報</h1>
-      <div class="help-icon">?</div>
-    </div>
-    <div class="rakmy-breadcrumb">
-      <a href="#">ホーム</a> &gt; 会社情報
-    </div>
+<!-- ==================== 会社情報（設定） ==================== -->
+<div id="page-company-info" class="page">
+  <div class="container">
+    <div class="page-title">会社情報 <span class="scope-tag company">会社スコープ</span> <span class="scope-tag new">NEW</span></div>
+    <div class="page-subtitle">担当者メールアドレスの下に「予算期間設定」セクションを追加</div>
 
-    <div class="rakmy-card">
-      <div class="rakmy-form-body">
-        <div class="form-row">
-          <div class="form-label">会社または個人事業主名<span class="required">*</span></div>
-          <div class="form-field">
-            <div class="input-wrapper">
-              <input type="text" class="form-input" value="青山フード株式会社" readonly>
-              <span class="valid-icon">&#10003;</span>
-            </div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-label">代表者名<span class="required">*</span></div>
-          <div class="form-field">
-            <div class="input-wrapper">
-              <input type="text" class="form-input" value="代表者1" readonly>
-              <span class="valid-icon">&#10003;</span>
-            </div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-label">郵便番号<span class="required">*</span></div>
-          <div class="form-field">
-            <div class="input-wrapper">
-              <input type="text" class="form-input" value="1103846" readonly>
-              <span class="valid-icon">&#10003;</span>
-            </div>
-            <div class="form-hint">ハイフンなしでご入力ください</div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-label">都道府県<span class="required">*</span></div>
-          <div class="form-field">
-            <select class="form-select" disabled><option>三重県</option></select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-label">住所<span class="required">*</span></div>
-          <div class="form-field">
-            <div class="input-wrapper">
-              <input type="text" class="form-input" value="住所1" readonly>
-              <span class="valid-icon">&#10003;</span>
-            </div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-label">建物</div>
-          <div class="form-field">
-            <div class="input-wrapper">
-              <input type="text" class="form-input" value="ビル4階" readonly>
-              <span class="valid-icon">&#10003;</span>
-            </div>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-label">電話番号<span class="required">*</span></div>
-          <div class="form-field">
-            <div class="input-wrapper">
-              <input type="text" class="form-input" value="0721388383" readonly>
-              <span class="valid-icon">&#10003;</span>
-            </div>
-            <div class="form-hint">ハイフンなしの半角数字でご入力ください</div>
-          </div>
-        </div>
+    <div class="rakmy-screen">
+      <div class="screen-header"><h3>会社情報</h3><div class="breadcrumb">ホーム &gt; 会社情報</div></div>
+      <div class="form-body">
+        <div class="form-row"><div class="form-label">会社または個人事業主名<span class="req">*</span></div><div class="form-field"><div class="input-wrapper"><input type="text" class="form-input" value="株式会社MUGEN" readonly><span class="valid-icon">&#10003;</span></div></div></div>
+        <div class="form-row"><div class="form-label">代表者名<span class="req">*</span></div><div class="form-field"><div class="input-wrapper"><input type="text" class="form-input" value="内山 正宏" readonly><span class="valid-icon">&#10003;</span></div></div></div>
+        <div class="form-row"><div class="form-label">郵便番号<span class="req">*</span></div><div class="form-field"><div class="input-wrapper"><input type="text" class="form-input" value="1530051" readonly><span class="valid-icon">&#10003;</span></div><div class="form-hint">ハイフンなしでご入力ください</div></div></div>
+        <div class="form-row"><div class="form-label">住所<span class="req">*</span></div><div class="form-field"><div class="input-wrapper"><input type="text" class="form-input" value="目黒区上目黒3-9-5" readonly><span class="valid-icon">&#10003;</span></div></div></div>
+        <div class="form-row"><div class="form-label">電話番号<span class="req">*</span></div><div class="form-field"><div class="input-wrapper"><input type="text" class="form-input" value="0362069680" readonly><span class="valid-icon">&#10003;</span></div><div class="form-hint">ハイフンなしの半角数字でご入力ください</div></div></div>
       </div>
-
-      <div class="rakmy-section-header">
-        <h3>担当者情報</h3>
+      <div class="section-header"><h4>担当者情報</h4></div>
+      <div class="form-body">
+        <div class="form-row"><div class="form-label">担当者名</div><div class="form-field"><input type="text" class="form-input" value="前原 妙子" disabled style="background:#f5f8fa;color:#a1a5b7;"></div></div>
+        <div class="form-row"><div class="form-label">担当者メールアドレス<span class="req">*</span></div><div class="form-field"><div class="input-wrapper"><input type="text" class="form-input" value="masahiro@mugen-c.jp" readonly><span class="valid-icon">&#10003;</span></div></div></div>
       </div>
-      <div class="rakmy-form-body">
-        <div class="form-row">
-          <div class="form-label">担当者名</div>
-          <div class="form-field">
-            <input type="text" class="form-input disabled" value="管理者1" disabled>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-label">担当者メールアドレス<span class="required">*</span></div>
-          <div class="form-field">
-            <div class="input-wrapper">
-              <input type="text" class="form-input" value="company1@example.com" readonly>
-              <span class="valid-icon">&#10003;</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- NEW -->
-      <div class="rakmy-section-header new-section highlight-area">
-        <h3>予算期間設定</h3>
-        <span class="new-badge">NEW</span>
-      </div>
-      <div class="rakmy-form-body highlight-area">
+      <!-- NEW SECTION -->
+      <div class="section-header highlight-bg"><h4>予算期間設定</h4><span class="new-badge">NEW</span></div>
+      <div class="form-body highlight-bg">
         <div class="form-row">
           <div class="form-label">予算開始月</div>
           <div class="form-field">
-            <select class="form-select" id="budgetStartMonth" onchange="updatePreview()" style="max-width: 200px;">
-              <option value="1">1月</option>
-              <option value="2">2月</option>
-              <option value="3">3月</option>
-              <option value="4" selected>4月</option>
-              <option value="5">5月</option>
-              <option value="6">6月</option>
-              <option value="7">7月</option>
-              <option value="8">8月</option>
-              <option value="9">9月</option>
-              <option value="10">10月</option>
-              <option value="11">11月</option>
-              <option value="12">12月</option>
+            <select class="form-select" id="budgetMonth" onchange="updatePreview()">
+              <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+              <option value="4" selected>4月</option><option value="5">5月</option><option value="6">6月</option>
+              <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+              <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
             </select>
-            <div class="form-hint">予算年度の開始月を設定します。全店舗の予算関連画面（予算設定・費用設定・予実対比・月次集計・感度分析）に反映されます。</div>
-            <div class="budget-preview" id="budgetPreview">
-              <span>&#128197;</span>
-              <span>予算期間: </span>
-              <span class="period" id="previewPeriod">2026年4月 〜 2027年3月</span>
+            <div class="form-hint">予算年度の開始月を設定します。全店舗の予算関連画面に反映されます。</div>
+            <div class="budget-preview">
+              <span>&#128197;</span> 予算期間: <span class="period" id="previewText">2026年4月 〜 2027年3月</span>
             </div>
           </div>
         </div>
       </div>
+      <div class="form-footer"><button class="btn-sm btn-primary" style="padding:10px 24px; font-size:13px; border-radius:8px;">更新</button></div>
+    </div>
+  </div>
+</div>
 
-      <div class="form-footer">
-        <button class="btn-primary">更新</button>
+<!-- ==================== 予算設定: 一覧 ==================== -->
+<div id="page-budget-list" class="page">
+  <div class="container">
+    <div class="page-title">予算設定: 一覧 <span class="scope-tag shop">店舗スコープ</span></div>
+    <div class="page-subtitle">デフォルト表示期間が予算年度（4月〜翌3月）に変更</div>
+
+    <div class="rakmy-screen">
+      <div class="screen-header"><h3>予算設定: 一覧</h3><div class="breadcrumb">ホーム &gt; 予算設定: 一覧</div></div>
+      <div class="screen-toolbar">
+        <div class="period-select">
+          <span class="sel-box highlight">2026年4月</span><span class="sep">〜</span><span class="sel-box highlight">2027年3月</span>
+        </div>
+      </div>
+      <div class="screen-body">
+        <table class="data-table">
+          <thead><tr>
+            <th style="min-width:130px;">項目</th>
+            <th class="hl">2026年4月</th><th class="hl">2026年5月</th><th class="hl">2026年6月</th><th class="hl">2026年7月</th><th class="hl">2026年8月</th><th class="hl">2026年9月</th><th class="hl">2026年10月</th><th class="hl">...</th><th class="hl">2027年3月</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="lc">月次目標利益</td><td>¥3,976,000</td><td>¥3,976,000</td><td>¥3,390,000</td><td>¥3,390,000</td><td>¥3,591,000</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+            <tr><td class="lc">目標FD仕入費率</td><td>29.2%</td><td>29.2%</td><td>29.2%</td><td>29.2%</td><td>29.2%</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+            <tr><td class="lc">目標PA人件費率</td><td>4.8%</td><td>4.8%</td><td>3.0%</td><td>3.0%</td><td>3.6%</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+            <tr><td class="lc">目標客単価</td><td>¥5,000</td><td>¥5,000</td><td>¥5,000</td><td>¥5,000</td><td>¥5,000</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+          </tbody>
+        </table>
+        <div class="callout green">セレクタで任意の範囲に変更可能。1月〜3月のデータも消えない。</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ==================== Page 3: Impact Map ==================== -->
-<div id="page-impact" class="page">
-  <div class="overview">
-    <h2>影響範囲マップ（全画面分析済み）</h2>
-    <p class="subtitle">会社スコープ12画面・店舗スコープ19画面の影響を網羅的に分析</p>
-
-    <!-- ===== Company Scope ===== -->
-    <div class="scope-section">
-      <div class="scope-header company">
-        <span class="scope-badge company">会社スコープ</span>
-        <h3>会社スコープの画面</h3>
-      </div>
-
-      <!-- 1. 会社情報 -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4>
-            <span class="impact-level new">新規追加</span>
-            会社情報画面 ー 予算期間設定セクション
-          </h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <p style="font-size:11px; color:#666; margin-bottom:10px;">
-            <span class="file-path">app/views/manager/companies/profile.html.haml</span>
-            <span class="file-path" style="margin-left:4px;">app/controllers/manager/companies_controller.rb</span>
-          </p>
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>変更内容</th></tr>
-            <tr>
-              <td>予算開始月セレクトボックス</td>
-              <td><span class="change-tag add">追加</span>設定</td>
-              <td>1〜12月の選択。担当者メールアドレスの下に「予算期間設定」セクションとして追加</td>
-            </tr>
-            <tr>
-              <td>予算期間プレビュー</td>
-              <td><span class="change-tag add">追加</span>表示</td>
-              <td>選択に連動して予算期間を表示（例: 「2026年4月 〜 2027年3月」）</td>
-            </tr>
-            <tr>
-              <td>company_params</td>
-              <td><span class="change-tag modify">修正</span>コントローラ</td>
-              <td><code>:budget_start_month</code> を permit に追加</td>
-            </tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- 2. 予実対比 -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4>
-            <span class="impact-level high">高</span>
-            予実対比（会社スコープ表示）
-          </h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <p style="font-size:11px; color:#666; margin-bottom:10px;">
-            <span class="file-path">app/controllers/manager/budget_vs_actuals_controller.rb</span>
-            <span class="file-path" style="margin-left:4px;">app/views/manager/budget_vs_actuals/index.html.haml</span>
-          </p>
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>現状</th><th>変更後</th></tr>
-            <tr>
-              <td>月セレクタ（from_date）</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td>カレンダー月で制限なし</td>
-              <td>予算年度内の月のみ選択可能にする（任意）</td>
-            </tr>
-            <tr>
-              <td>予算データ取得</td>
-              <td><span class="change-tag modify">修正</span>ロジック</td>
-              <td><code>MonthlyBudget.find_with_month(shop_id, @month.year, @month.month)</code></td>
-              <td>予算年度の判定にbudget_start_monthを使用</td>
-            </tr>
-            <tr>
-              <td>予算売上・FD仕入・人件費</td>
-              <td><span class="change-tag keep">維持</span>表示</td>
-              <td colspan="2">月単位のデータ取得なので影響なし（月指定は変わらない）</td>
-            </tr>
-            <tr>
-              <td>固定費（地代家賃等）</td>
-              <td><span class="change-tag keep">維持</span>表示</td>
-              <td colspan="2">MonthlyCostから月単位取得なので影響なし</td>
-            </tr>
-          </table>
-          <div class="warn-box" style="margin-top:12px;">
-            <strong>注意:</strong> 予実対比は月単位表示のため、予算開始月の変更自体はデータ取得に影響しない。ただし、月セレクタの選択肢を予算年度に合わせたい場合は修正が必要。
-          </div>
-        </div>
-      </div>
-
-      <!-- 会社: 進捗分析 -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4>
-            <span class="impact-level medium">中</span>
-            進捗分析
-          </h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>影響</th></tr>
-            <tr><td>月セレクタ「2026年04月」</td><td><span class="change-tag modify">修正</span>表示</td><td>予算年度でグルーピング（任意）</td></tr>
-            <tr><td>目標FD仕入費率 32.0%、PA人件費率 21.5%</td><td><span class="change-tag keep">維持</span>表示</td><td>MonthlyBudget月単位取得のため影響なし</td></tr>
-            <tr><td>利益進捗率・売上進捗率・日次推移</td><td><span class="change-tag keep">維持</span>表示</td><td>月内実績データのため影響なし</td></tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- 会社: 月次レポート -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4>
-            <span class="impact-level low">低</span>
-            月次レポート
-          </h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>影響</th></tr>
-            <tr><td>月セレクタ「2026年04月」</td><td><span class="change-tag modify">修正</span>表示</td><td>予算年度でグルーピング（任意）</td></tr>
-            <tr><td>原価・原価率・店舗別内訳</td><td><span class="change-tag keep">維持</span>表示</td><td>月単位の実績データのため影響なし</td></tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- 会社: 影響なし -->
-      <div class="screen-card" style="opacity:0.6;">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4>
-            <span class="impact-level none">影響なし</span>
-            売上分析（ABC・商品別・曜日別・支払種別）/ 仕入分析（仕入先別・商品別）/ お支払い
-          </h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <p style="font-size:11px; color:#999;">日付範囲で実績データのみを表示する画面。予算データを参照しないため、予算開始月の設定は影響しない。</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== Shop Scope ===== -->
-    <div class="scope-section">
-      <div class="scope-header shop">
-        <span class="scope-badge shop">店舗スコープ</span>
-        <h3>店舗スコープの画面</h3>
-      </div>
-
-      <!-- 3. 予算設定: 一覧 -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4>
-            <span class="impact-level high">高</span>
-            予算設定: 一覧（月次予算一覧）
-          </h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <p style="font-size:11px; color:#666; margin-bottom:10px;">
-            <span class="file-path">app/controllers/manager/shops/monthly_budgets_controller.rb</span>
-            <span class="file-path" style="margin-left:4px;">app/views/manager/shops/monthly_budgets/index.html.haml</span>
-          </p>
-          <div class="info-box" style="margin-bottom:12px;">
-            <strong>最新masterの変更点:</strong> <code>generate_year_months_list</code>で店舗作成日〜now+3年の全月リスト生成。<code>start_month</code>/<code>end_month</code>パラメータで任意範囲選択可能。デフォルトは今年1月〜12月。
-          </div>
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>現状（最新master）</th><th>変更後</th></tr>
-            <tr>
-              <td>デフォルト表示範囲</td>
-              <td><span class="change-tag modify">修正</span>ロジック</td>
-              <td>今年1月〜12月を<code>find_index</code>で検索</td>
-              <td><code>company.budget_months(year)</code>の範囲をデフォルトに</td>
-            </tr>
-            <tr>
-              <td>start_month/end_monthパラメータ</td>
-              <td><span class="change-tag keep">維持</span>ロジック</td>
-              <td colspan="2">ユーザー指定時はそのまま使用（変更不要）</td>
-            </tr>
-            <tr>
-              <td>generate_year_months_list</td>
-              <td><span class="change-tag keep">維持</span>ロジック</td>
-              <td colspan="2">全月リスト生成は変更不要（年跨ぎ対応済み）</td>
-            </tr>
-            <tr>
-              <td>月次利益 / 仕入比率 / PA人件費比率 / 客単価</td>
-              <td><span class="change-tag keep">維持</span>表示</td>
-              <td colspan="2">各月のMonthlyBudgetデータ表示は変わらない</td>
-            </tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- 4. 年間予算サマリー -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4>
-            <span class="impact-level high">高</span>
-            予算設定: 年間予算サマリー
-          </h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <p style="font-size:11px; color:#666; margin-bottom:10px;">
-            <span class="file-path">app/controllers/concerns/annual_budget_summary.rb</span>
-            <span class="file-path" style="margin-left:4px;">app/views/manager/shops/monthly_budgets/index.html.haml</span>
-          </p>
-          <div class="info-box" style="margin-bottom:12px;">
-            <strong>最新masterの変更点:</strong> <code>(1..12)</code>ハードコード解消済み。<code>build_annual_budget_summary(from_date, to_date)</code>で任意期間対応。<code>@year_months</code>配列で年跨ぎも対応済み。期間累積計算(<code>calculate_period_totals</code>)も追加済み。
-          </div>
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>現状（最新master）</th><th>変更後</th></tr>
-            <tr>
-              <td>build_annual_budget_summaryのデフォルト期間</td>
-              <td><span class="change-tag modify">修正</span>ロジック</td>
-              <td>monthly_budgets_controller#indexから今年1月〜12月のfrom/toを渡す</td>
-              <td>company.budget_months(year)のfirst/lastのdateを渡す</td>
-            </tr>
-            <tr>
-              <td>generate_year_months_list</td>
-              <td><span class="change-tag keep">維持</span>ロジック</td>
-              <td colspan="2">from/to日付を受け取り月リスト生成（年跨ぎ対応済み）</td>
-            </tr>
-            <tr>
-              <td>月ループ（@year_months.each_with_index）</td>
-              <td><span class="change-tag keep">維持</span>ロジック</td>
-              <td colspan="2">動的月リストで既に対応済み</td>
-            </tr>
-            <tr>
-              <td>ヘッダ列・データ行</td>
-              <td><span class="change-tag keep">維持</span>表示</td>
-              <td colspan="2">@display_year_monthsから動的生成（変更不要）</td>
-            </tr>
-            <tr>
-              <td>期間累積（calculate_period_totals）</td>
-              <td><span class="change-tag keep">維持</span>ロジック</td>
-              <td colspan="2">表示範囲の合計を自動計算（変更不要）</td>
-            </tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- 5. 費用設定 履歴 -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4>
-            <span class="impact-level high">高</span>
-            費用設定: 履歴（年間費用一覧）
-          </h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <p style="font-size:11px; color:#666; margin-bottom:10px;">
-            <span class="file-path">app/controllers/manager/shops/monthly_cost_histories_controller.rb</span>
-            <span class="file-path" style="margin-left:4px;">app/views/manager/shops/monthly_cost_histories/index.html.haml</span>
-          </p>
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>現状</th><th>変更後</th></tr>
-            <tr>
-              <td>年ナビゲーション（前年/翌年）</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td>カレンダー年「2026年」</td>
-              <td>予算年度「2026年度」</td>
-            </tr>
-            <tr>
-              <td>year_monthクエリ範囲</td>
-              <td><span class="change-tag modify">修正</span>ロジック</td>
-              <td><code>beginning_of_year</code> 〜 <code>end_of_year</code></td>
-              <td>budget_start_month起点の12ヶ月範囲</td>
-            </tr>
-            <tr>
-              <td>月ごとの費用予算行</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td>1月〜12月の順序で表示</td>
-              <td>予算開始月起点の12ヶ月で表示</td>
-            </tr>
-            <tr>
-              <td>費用予算額 / 比率表示</td>
-              <td><span class="change-tag keep">維持</span>表示</td>
-              <td colspan="2">月単位のデータなので値の計算は変わらない</td>
-            </tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- 6. 費用設定: 一覧 -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4>
-            <span class="impact-level low">低</span>
-            費用設定: 一覧（当月設定）
-          </h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <p style="font-size:11px; color:#666; margin-bottom:10px;">
-            <span class="file-path">app/controllers/manager/shops/monthly_costs_controller.rb</span>
-            <span class="file-path" style="margin-left:4px;">app/views/manager/shops/monthly_costs/index.html.haml</span>
-          </p>
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>現状</th><th>変更後</th></tr>
-            <tr>
-              <td>当月の費用設定表示</td>
-              <td><span class="change-tag keep">維持</span>設定</td>
-              <td colspan="2">当月のデータ表示のため影響なし</td>
-            </tr>
-            <tr>
-              <td>費用項目の作成・更新</td>
-              <td><span class="change-tag keep">維持</span>設定</td>
-              <td colspan="2">月単位の操作のため影響なし</td>
-            </tr>
-            <tr>
-              <td>「履歴」へのリンク</td>
-              <td><span class="change-tag keep">維持</span>表示</td>
-              <td colspan="2">影響なし（リンク先の表示が変わる）</td>
-            </tr>
-          </table>
-          <div class="info-box" style="margin-top:12px;">
-            <strong>影響が低い理由:</strong> この画面は常に「当月」のデータのみを表示・設定するため、予算年度の概念が不要。年間の一覧表示は「費用設定: 履歴」画面が担当。
-          </div>
-        </div>
-      </div>
-
-      <!-- 7. 月次集計（月次実績トラック） -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4>
-            <span class="impact-level medium">中</span>
-            月次集計（月次実績トラック）
-          </h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <p style="font-size:11px; color:#666; margin-bottom:10px;">
-            <span class="file-path">app/controllers/manager/shops/mq_analysis_controller.rb</span>
-            <span class="file-path" style="margin-left:4px;">app/views/manager/shops/mq_analysis/monthly_track.html.haml</span>
-            <span class="file-path" style="margin-left:4px;">app/javascript/components/manager/mq_analysis/track.jsx</span>
-          </p>
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>現状</th><th>変更後</th></tr>
-            <tr>
-              <td>月セレクタ（ドロップダウン）</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td>過去24ヶ月のリスト</td>
-              <td>予算年度単位でグルーピング表示（任意）</td>
-            </tr>
-            <tr>
-              <td>デフォルト月</td>
-              <td><span class="change-tag keep">維持</span>ロジック</td>
-              <td colspan="2">当月がデフォルトのため影響なし</td>
-            </tr>
-            <tr>
-              <td>売上実績 / 客数 / FD原価率 / PA人件費率</td>
-              <td><span class="change-tag keep">維持</span>表示</td>
-              <td colspan="2">月単位の実績データなので影響なし</td>
-            </tr>
-            <tr>
-              <td>目標値との比較</td>
-              <td><span class="change-tag keep">維持</span>表示</td>
-              <td colspan="2">MonthlyBudgetからの取得は月単位なので影響なし</td>
-            </tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- 8. 感度分析 -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4>
-            <span class="impact-level medium">中</span>
-            感度分析
-          </h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <p style="font-size:11px; color:#666; margin-bottom:10px;">
-            <span class="file-path">app/controllers/manager/shops/mq_analysis_controller.rb</span>
-            <span class="file-path" style="margin-left:4px;">app/views/manager/shops/mq_analysis/monthly.html.haml</span>
-            <span class="file-path" style="margin-left:4px;">app/javascript/components/manager/mq_analysis/analysis.jsx</span>
-          </p>
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>現状</th><th>変更後</th></tr>
-            <tr>
-              <td>月セレクタ</td>
-              <td><span class="change-tag modify">修正</span>表示</td>
-              <td>過去24ヶ月のリスト</td>
-              <td>予算年度単位でグルーピング表示（任意）</td>
-            </tr>
-            <tr>
-              <td>感度分析の計算ロジック</td>
-              <td><span class="change-tag keep">維持</span>ロジック</td>
-              <td colspan="2">月単位の計算のため影響なし</td>
-            </tr>
-            <tr>
-              <td>MQ分析データ（売上・客数・客単価）</td>
-              <td><span class="change-tag keep">維持</span>表示</td>
-              <td colspan="2">月単位の実績/目標データなので影響なし</td>
-            </tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- 店舗: 感度分析 -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4><span class="impact-level medium">中</span> 感度分析</h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>影響</th></tr>
-            <tr><td>月セレクタ「2026年04月」</td><td><span class="change-tag modify">修正</span>表示</td><td>予算年度でグルーピング（任意）</td></tr>
-            <tr><td>目標値（固定費 ¥2,272,200等）</td><td><span class="change-tag keep">維持</span>表示</td><td>MonthlyBudget月単位取得のため影響なし</td></tr>
-            <tr><td>P/V/Q/MQ計算ロジック</td><td><span class="change-tag keep">維持</span>ロジック</td><td>月単位の計算のため影響なし</td></tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- 店舗: 日次レポート -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4><span class="impact-level low">低</span> 日次レポート</h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>影響</th></tr>
-            <tr><td>期間セレクタ「2026/04/01 - 2026/04/30」</td><td><span class="change-tag keep">維持</span>表示</td><td>月内の日次データ表示のため影響なし</td></tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- 店舗: 月次レポート -->
-      <div class="screen-card">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4><span class="impact-level medium">中</span> 月次レポート</h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>影響</th></tr>
-            <tr><td>月セレクタ「2026年04月」</td><td><span class="change-tag modify">修正</span>表示</td><td>予算年度でグルーピング（任意）</td></tr>
-            <tr><td>12ヶ月テーブル（2026年04月〜2025年05月）</td><td><span class="change-tag modify">修正</span>表示</td><td>予算年度の範囲で表示（任意）</td></tr>
-            <tr><td>原価・原価率・店舗別内訳</td><td><span class="change-tag keep">維持</span>表示</td><td>月単位の実績データのため影響なし</td></tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- 店舗: 影響なし -->
-      <div class="screen-card" style="opacity:0.6;">
-        <div class="screen-card-header" onclick="toggleCard(this)">
-          <h4>
-            <span class="impact-level none">影響なし</span>
-            売上分析 ABC / FD分析 / 流入分析 / 店舗情報 / 連携設定 / 休業日設定 / 費用設定（当月）
-          </h4>
-          <span class="arrow">&#9654;</span>
-        </div>
-        <div class="screen-card-body">
-          <p style="font-size:11px; color:#999;">日付範囲で実績データのみを表示する画面、または予算概念のない設定画面。予算開始月の設定は影響しない。</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== Summary Table ===== -->
-    <h3 class="section-title">全画面サマリー（会社12画面 + 店舗19画面 = 31画面）</h3>
-
-    <h4 style="font-size:13px; margin:16px 0 8px; color:#5264f0;">会社スコープ（影響あり 5 / 影響なし 7）</h4>
-    <table class="spec-table">
-      <tr><th>画面名</th><th>メニュー</th><th>影響レベル</th><th>影響箇所</th></tr>
-      <tr><td><strong>会社情報</strong></td><td>設定</td><td><span class="impact-level new">新規</span></td><td>予算開始月セレクト + プレビュー新規追加</td></tr>
-      <tr><td><strong>年間予実対比</strong></td><td>集計</td><td><span class="impact-level high">高</span></td><td>期間セレクタのデフォルト値</td></tr>
-      <tr><td><strong>予実対比</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>期間セレクタの月選択範囲</td></tr>
-      <tr><td><strong>進捗分析</strong></td><td>詳細分析</td><td><span class="impact-level medium">中</span></td><td>月セレクタのグルーピング</td></tr>
-      <tr><td><strong>月次レポート</strong></td><td>集計</td><td><span class="impact-level low">低</span></td><td>月セレクタのグルーピング</td></tr>
-      <tr style="color:#999;"><td>ABC分析 / 商品別売上 / 曜日別 / 支払種別 / 仕入先別 / 商品別仕入 / お支払い</td><td>-</td><td><span class="impact-level none">なし</span></td><td>-</td></tr>
-    </table>
-
-    <h4 style="font-size:13px; margin:16px 0 8px; color:#2ec4a5;">店舗スコープ（影響あり 11 / 影響なし 8）</h4>
-    <table class="spec-table">
-      <tr><th>画面名</th><th>メニュー</th><th>影響レベル</th><th>影響箇所</th></tr>
-      <tr><td><strong>予算設定: 一覧（設定値+構成）</strong></td><td>予算設定</td><td><span class="impact-level high">高</span></td><td>期間セレクタ「2026年1月〜2026年12月」のデフォルト値</td></tr>
-      <tr><td><strong>年間予実対比（サマリー+予実対比）</strong></td><td>集計</td><td><span class="impact-level high">高</span></td><td>期間セレクタのデフォルト値</td></tr>
-      <tr><td><strong>予実対比</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>期間セレクタの月選択範囲</td></tr>
-      <tr><td><strong>月次集計（MQ分析）</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>月セレクタのグルーピング</td></tr>
-      <tr><td><strong>月次レポート</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>月セレクタ + 12ヶ月テーブル範囲</td></tr>
-      <tr><td><strong>進捗分析</strong></td><td>詳細分析</td><td><span class="impact-level medium">中</span></td><td>月セレクタのグルーピング</td></tr>
-      <tr><td><strong>感度分析</strong></td><td>詳細分析</td><td><span class="impact-level medium">中</span></td><td>月セレクタのグルーピング</td></tr>
-      <tr><td><strong>月次予算設定</strong></td><td>予算設定</td><td><span class="impact-level low">低</span></td><td>月セレクタのデフォルト</td></tr>
-      <tr><td><strong>日次レポート</strong></td><td>集計</td><td><span class="impact-level low">低</span></td><td>期間セレクタ</td></tr>
-      <tr><td><strong>費用設定: 履歴</strong></td><td>設定</td><td><span class="impact-level high">高</span></td><td>年ナビ、year_month範囲</td></tr>
-      <tr><td><strong>費用設定: 一覧</strong></td><td>設定</td><td><span class="impact-level low">低</span></td><td>なし（当月表示のみ）</td></tr>
-      <tr style="color:#999;"><td>ABC分析 / FD分析 / 流入分析 / 店舗情報 / 連携設定 / 休業日設定 / 費用設定（当月）/ 予算コントロール</td><td>-</td><td><span class="impact-level none">なし</span></td><td>-</td></tr>
-    </table>
-
-    <div class="warn-box">
-      <strong>フェーズ1（必須）:</strong> 会社情報（新規）、予算設定:一覧（店舗）、年間予実対比（会社/店舗）、費用設定:履歴（店舗）<br>
-      <strong>フェーズ2（任意）:</strong> 予実対比、月次集計、月次レポート、感度分析、進捗分析の月セレクタ年度グルーピング改善
-    </div>
-  </div>
-</div>
-
-<!-- ==================== Page 4: Annual Summary ==================== -->
+<!-- ==================== 年間予実対比 ==================== -->
 <div id="page-annual" class="page">
-  <div class="rakmy-container">
-    <div class="rakmy-header">
-      <h1>予算設定: 一覧</h1>
-    </div>
-    <div class="rakmy-breadcrumb">
-      <a href="#">ホーム</a> &gt; 予算設定
-    </div>
+  <div class="container">
+    <div class="page-title">集計: 年間予実対比 <span class="scope-tag shop">店舗スコープ</span> <span class="scope-tag company">会社スコープ</span></div>
+    <div class="page-subtitle">デフォルト期間が予算年度に変更。サマリー・予実対比の月列が4月起点に。</div>
 
-    <div class="info-box">
-      <strong>予算開始月による表示変化:</strong> セレクトボックスで開始月を変更すると、テーブルの列が予算年度に合わせて変化します。
-    </div>
-
-    <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
-      <label style="font-size: 13px; font-weight: 600;">予算開始月シミュレーション:</label>
-      <select class="form-select" id="annualStartMonth" onchange="updateAnnualTable()" style="width: 120px;">
-        <option value="1">1月</option>
-        <option value="4" selected>4月</option>
-        <option value="7">7月</option>
-        <option value="10">10月</option>
-      </select>
-    </div>
-
-    <div class="comparison" style="margin-bottom: 24px;">
-      <div class="comparison-box before">
-        <h4><span class="dot"></span>現状（1月〜12月固定）</h4>
-        <div class="month-grid" id="beforeMonths"></div>
+    <div class="rakmy-screen">
+      <div class="screen-header">
+        <h3>集計: 年間予実対比</h3>
+        <div><span class="btn-sm btn-outline" style="margin-right:4px;">予算設定一覧</span><span class="btn-sm btn-outline">費用設定</span></div>
       </div>
-      <div class="comparison-box after">
-        <h4><span class="dot"></span>変更後（予算開始月起点）</h4>
-        <div class="month-grid" id="afterMonths"></div>
+      <div class="screen-toolbar">
+        <div class="period-select">
+          <span class="sel-box highlight">2026年4月</span><span class="sep">〜</span><span class="sel-box highlight">2027年3月</span>
+        </div>
       </div>
-    </div>
-
-    <div class="rakmy-card">
-      <div class="rakmy-form-body" style="padding: 0; overflow-x: auto;">
-        <table class="annual-table" id="annualTable"></table>
+      <div class="screen-body">
+        <div style="font-size:13px; font-weight:700; margin-bottom:12px;">サマリー</div>
+        <table class="data-table">
+          <thead>
+            <tr><th style="min-width:100px;">項目</th><th colspan="3" class="hl">2026年4月</th><th colspan="3" class="hl">2026年5月</th><th colspan="3" class="hl">2026年6月</th><th colspan="3" class="hl">... 〜 2027年3月</th></tr>
+            <tr><th></th><th>予算値</th><th>実績値</th><th>差額</th><th>予算値</th><th>実績値</th><th>差額</th><th>予算値</th><th>実績値</th><th>差額</th><th colspan="3" style="text-align:center;">...</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="lc">営業利益</td><td>¥3,976,000</td><td>-</td><td>-</td><td>¥3,976,000</td><td>-</td><td>-</td><td>¥3,390,000</td><td>-</td><td>-</td><td colspan="3" style="text-align:center;color:#999;">...</td></tr>
+            <tr><td class="lc">FD仕入額</td><td>¥5,110,000</td><td>-</td><td>-</td><td>¥5,110,000</td><td>-</td><td>-</td><td>¥4,672,000</td><td>-</td><td>-</td><td colspan="3" style="text-align:center;color:#999;">...</td></tr>
+            <tr><td class="lc">人件費額</td><td>¥5,657,000</td><td>-</td><td>-</td><td>¥5,657,000</td><td>-</td><td>-</td><td>¥5,483,000</td><td>-</td><td>-</td><td colspan="3" style="text-align:center;color:#999;">...</td></tr>
+          </tbody>
+        </table>
+        <div class="callout green">1月〜3月のデータは「前年度」としてセレクタで切り替え可能。</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ==================== Page 5: Code Details ==================== -->
+<!-- ==================== 費用設定: 履歴 ==================== -->
+<div id="page-cost-history" class="page">
+  <div class="container">
+    <div class="page-title">費用設定: 履歴 <span class="scope-tag shop">店舗スコープ</span></div>
+    <div class="page-subtitle">年ナビが「年度」単位に変更、表示範囲が4月〜翌3月に。</div>
+
+    <div class="rakmy-screen">
+      <div class="screen-header"><h3>費用設定 - 地代家賃</h3><div class="breadcrumb">ホーム &gt; 費用設定 &gt; 地代家賃</div></div>
+      <div class="screen-toolbar">
+        <div class="year-nav">
+          <span class="arrow">&#9664; 前年度</span>
+          <span class="label">2026年度</span>
+          <span class="arrow">翌年度 &#9654;</span>
+        </div>
+      </div>
+      <div class="screen-body">
+        <table class="data-table">
+          <thead><tr><th style="min-width:120px;">年月</th><th>費用予算</th><th>アクション</th></tr></thead>
+          <tbody>
+            <tr><td class="lc" style="color:#1a9e7e; font-weight:700;">2026年4月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+            <tr><td class="lc">2026年5月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+            <tr><td class="lc">2026年6月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+            <tr style="color:#ccc;"><td>...</td><td>...</td><td></td></tr>
+            <tr><td class="lc">2027年1月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+            <tr><td class="lc">2027年2月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+            <tr><td class="lc">2027年3月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+          </tbody>
+        </table>
+        <div class="callout green">年ナビが「前年/翌年」→「前年度/翌年度」に変更。year_monthクエリ範囲も予算年度に連動。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 予実対比 ==================== -->
+<div id="page-bva" class="page">
+  <div class="container">
+    <div class="page-title">集計: 予実対比 <span class="scope-tag shop">店舗スコープ</span> <span class="scope-tag company">会社スコープ</span></div>
+    <div class="page-subtitle">月内の日次比較のため、データ取得に変化なし。表示内容は同一。</div>
+
+    <div class="rakmy-screen">
+      <div class="screen-header"><h3>予実対比</h3></div>
+      <div class="screen-toolbar">
+        <span style="font-size:11px; color:#999; margin-right:6px;">期間</span>
+        <div class="date-range"><span>&#128197;</span> 2026/04/01 - 2026/04/09</div>
+      </div>
+      <div class="screen-body">
+        <table class="data-table">
+          <thead>
+            <tr><th rowspan="2" style="min-width:110px;">項目</th><th colspan="2" style="background:#f0f0ff;">予算</th><th colspan="3" style="background:#fff0f0;">実績 + 概算値</th></tr>
+            <tr><th>予算値(税抜)</th><th>構成比</th><th>実績値(税抜)</th><th>予算対比</th><th>予算対比率</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="lc">総売上</td><td>¥5,250,000</td><td>100.0%</td><td>¥5,364,177</td><td class="pos">¥+114,177</td><td>102.2%</td></tr>
+            <tr><td class="lc" style="padding-left:20px;">フード売上</td><td>¥3,150,000</td><td>60.0%</td><td>¥3,338,042</td><td class="pos">¥+188,042</td><td>106.0%</td></tr>
+            <tr><td class="lc" style="padding-left:20px;">ドリンク売上</td><td>¥2,100,000</td><td>40.0%</td><td>¥1,799,660</td><td class="neg">¥-300,340</td><td>85.7%</td></tr>
+            <tr><td class="lc">FD仕入</td><td>¥1,533,000</td><td>29.2%</td><td>¥1,295,856</td><td class="neg">¥-237,144</td><td>84.5%</td></tr>
+            <tr><td class="lc">地代家賃</td><td>¥218,700</td><td>4.2%</td><td>¥218,700</td><td>¥0</td><td>100.0%</td></tr>
+            <tr><td class="lc" style="font-weight:700;">営業利益</td><td style="font-weight:700;">¥1,192,800</td><td>22.7%</td><td style="font-weight:700;">¥1,484,799</td><td class="pos" style="font-weight:700;">¥+291,049</td><td style="font-weight:700;">124.5%</td></tr>
+          </tbody>
+        </table>
+        <div class="callout green">この画面は月内の日次データで比較するため、予算開始月の変更はデータに影響しない。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 月次集計 ==================== -->
+<div id="page-monthly" class="page">
+  <div class="container">
+    <div class="page-title">集計: 月次集計（MQ分析） <span class="scope-tag shop">店舗スコープ</span></div>
+    <div class="page-subtitle">月セレクタの選択肢が予算年度でグルーピングされる</div>
+
+    <div class="rakmy-screen">
+      <div class="screen-header"><h3>月次集計</h3><div class="breadcrumb">ホーム &gt; 月次集計 &gt; 2026年4月</div></div>
+      <div class="screen-toolbar">
+        <span style="font-size:11px; color:#999;">対象月選択</span>
+        <span class="sel-box">2026年04月</span>
+        <span class="btn-sm btn-outline" style="margin-left:auto;">感度分析</span>
+      </div>
+      <div class="screen-body">
+        <div class="kpi-grid cols5">
+          <div class="kpi-card"><div class="kpi-label">P 客単価（税抜）</div><div class="kpi-value">¥5,089</div><div class="kpi-target">¥5,000</div></div>
+          <div class="kpi-card"><div class="kpi-label">V 変動費単価</div><div class="kpi-value">¥1,525</div><div class="kpi-target">¥1,700</div><div class="kpi-sub">変動費率 30%</div></div>
+          <div class="kpi-card"><div class="kpi-label">Q 客数</div><div class="kpi-value">1,054</div><div class="kpi-target">3500</div></div>
+          <div class="kpi-card"><div class="kpi-label">P*Q 売上（税抜）</div><div class="kpi-value">¥5,364,177</div><div class="kpi-target">¥17,500,000</div></div>
+          <div class="kpi-card"><div class="kpi-label">V*Q 変動費</div><div class="kpi-value">¥1,607,178</div><div class="kpi-target">¥5,950,000</div></div>
+        </div>
+        <div class="month-selector-demo">
+          セレクタ選択肢: <strong>【2026年度】</strong> 2026年04月, 05月, 06月, ... 2027年03月 &nbsp;|&nbsp; <strong>【2025年度】</strong> 2025年04月, 05月, ... 2026年03月
+        </div>
+        <div class="callout green">データ表示は同一。月セレクタの選択肢が予算年度ごとにグルーピング。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 進捗分析 ==================== -->
+<div id="page-progress" class="page">
+  <div class="container">
+    <div class="page-title">詳細分析: 進捗分析 <span class="scope-tag shop">店舗スコープ</span> <span class="scope-tag company">会社スコープ</span></div>
+    <div class="page-subtitle">月セレクタの年度グルーピング。目標値はMonthlyBudgetから月単位取得で変化なし。</div>
+
+    <div class="rakmy-screen">
+      <div class="screen-header"><h3>進捗分析</h3></div>
+      <div class="screen-toolbar">
+        <span style="font-size:11px; color:#999;">表示データ</span>
+        <span class="sel-box">2026年04月</span>
+      </div>
+      <div class="screen-body">
+        <div class="kpi-grid cols3">
+          <div class="kpi-card"><div class="kpi-label">利益率</div><div style="display:flex; justify-content:space-between; align-items:baseline;"><span class="kpi-value">22.7%</span><span class="kpi-target">目標利益率 22.7%</span></div></div>
+          <div class="kpi-card"><div class="kpi-label">FD仕入費率</div><div style="display:flex; justify-content:space-between; align-items:baseline;"><span class="kpi-value">24.2%</span><span class="kpi-target">目標FD仕入費率 29.2%</span></div></div>
+          <div class="kpi-card"><div class="kpi-label">PA人件費率</div><div style="display:flex; justify-content:space-between; align-items:baseline;"><span class="kpi-value">3.2%</span><span class="kpi-target">目標PA人件費率 4.8%</span></div></div>
+        </div>
+        <div class="month-selector-demo">
+          セレクタ選択肢: <strong>【2026年度】</strong> 2026年04月, 05月, ... 2027年03月 &nbsp;|&nbsp; <strong>【2025年度】</strong> 2025年04月, ... 2026年03月
+        </div>
+        <div class="callout green">目標値（FD仕入費率29.2%等）はMonthlyBudgetから月単位取得のため変化なし。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 感度分析 ==================== -->
+<div id="page-sensitivity" class="page">
+  <div class="container">
+    <div class="page-title">詳細分析: 感度分析 <span class="scope-tag shop">店舗スコープ</span></div>
+    <div class="page-subtitle">月セレクタの年度グルーピング。固定費・目標値の取得ロジックは変化なし。</div>
+
+    <div class="rakmy-screen">
+      <div class="screen-header"><h3>感度分析</h3><div class="breadcrumb">ホーム &gt; 感度分析 &gt; 2026年4月</div></div>
+      <div class="screen-toolbar">
+        <span style="font-size:11px; color:#999;">対象月選択</span>
+        <span class="sel-box">2026年04月</span>
+        <span class="btn-sm btn-outline" style="margin-left:auto;">実績ページへ</span>
+      </div>
+      <div class="screen-body">
+        <div class="kpi-grid cols5">
+          <div class="kpi-card"><div class="kpi-label">P 客単価（税抜）</div><div class="kpi-value">¥5,089</div></div>
+          <div class="kpi-card"><div class="kpi-label">V 変動費単価</div><div class="kpi-value">¥1,394</div><div class="kpi-sub">変動費率 27.4%</div></div>
+          <div class="kpi-card"><div class="kpi-label">Q 客数</div><div class="kpi-value">1,054</div></div>
+          <div class="kpi-card"><div class="kpi-label">F 固定費</div><div class="kpi-value">¥2,272,200</div></div>
+          <div class="kpi-card"><div class="kpi-label">G 利益</div><div class="kpi-value">¥1,622,193</div></div>
+        </div>
+        <div class="month-selector-demo">
+          セレクタ選択肢: <strong>【2026年度】</strong> 2026年04月, 05月, ... 2027年03月 &nbsp;|&nbsp; <strong>【2025年度】</strong> 2025年04月, ... 2026年03月
+        </div>
+        <div class="callout green">固定費¥2,272,200等はMonthlyBudget/MonthlyCostから月単位取得のため変化なし。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 実装詳細 ==================== -->
 <div id="page-code" class="page">
-  <div class="overview">
-    <h2>実装詳細</h2>
-    <p class="subtitle">DB変更、モデルメソッド、コントローラ修正の詳細</p>
+  <div class="container">
+    <div class="page-title">実装詳細</div>
+    <div class="page-subtitle">DB変更、モデルメソッド、コントローラ修正</div>
 
-    <h3 class="section-title">1. 現在のデータ構造（最新master 2026-04-09）</h3>
-    <div class="rakmy-card" style="padding: 20px;">
-      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code># companies テーブル（schema.rb より）
-create_table "companies" do |t|
-  t.string  "name"
-  t.string  "phone", "representive", "zipcode", "address", "building", "email"
-  t.integer "prefecture_id"
-  t.string  "price_version"
-  # 請求先情報
-  t.string  "billing_zipcode", "billing_address", "billing_building"
-  t.integer "billing_prefecture_id"
-  t.string  "billing_staff_email", "billing_staff_name", "billing_staff_phone"
-  # トライアル・プラン
-  t.date    "trial_expired_on", "extra_trial_expired_on"
-  t.boolean "force_enterprise_enabled", default: false
-  t.boolean "is_infomart_api", default: false
-  t.boolean "is_vendor_billing_on", default: false
-  # 外部連携
-  t.string  "scalebase_customer_id", "infomart_client_id", "infomart_client_secret"
+    <h3 class="section-title">DB Migration（1カラム追加のみ）</h3>
+    <div class="rakmy-screen" style="border:none;"><div class="screen-body">
+      <pre style="font-size:11px; line-height:1.7; font-family:'SF Mono','Menlo',monospace;"><code>add_column :companies, :budget_start_month, :integer, default: 1, comment: "予算開始月（1-12）"</code></pre>
+    </div></div>
+
+    <h3 class="section-title">Company モデル追加（Sorbet対応）</h3>
+    <div class="rakmy-screen" style="border:none;"><div class="screen-body">
+      <pre style="font-size:11px; line-height:1.7; font-family:'SF Mono','Menlo',monospace;"><code>validates :budget_start_month, inclusion: { in: 1..12 }, allow_nil: true
+
+sig { params(year: Integer).returns(T::Hash[Symbol, Integer]) }
+def budget_period(year)
+  s = budget_start_month || 1
+  if s == 1
+    { from: year * 100 + 1, to: year * 100 + 12 }
+  else
+    { from: year * 100 + s, to: (year + 1) * 100 + (s - 1) }
+  end
 end
 
-# monthly_budgets テーブル
-create_table "monthly_budgets" do |t|
-  t.integer "shop_id",            null: false
-  t.integer "year_month",         null: false  # YYYYMM形式 (例: 202604)
-  t.integer "profit",             default: 0
-  t.decimal "food_cost_rate",     precision: 5, scale: 1
-  t.decimal "labor_cost_rate",    precision: 5, scale: 1
-  t.integer "sales_per_customer", default: 0
-  t.float   "sales_ratio_lunch", "sales_ratio_dinner"
-  t.float   "sales_ratio_food", "sales_ratio_drink", "sales_ratio_other"
-  t.index   ["shop_id", "year_month"], unique: true
-end
-
-# shop_rents テーブル（地代家賃 - RentConfigurationから移行済み）
-create_table "shop_rents" do |t|
-  t.integer "shop_id",        null: false
-  t.integer "rent_type",      default: 0    # enum
-  t.integer "condition_type", default: 0    # enum
-  t.integer "fixed_rent",     default: 0
-  t.decimal "rate",           precision: 5, scale: 2
-  t.integer "threshold"
-  t.date    "effective_from", null: false
-  t.date    "effective_until"               # オーバーライド用
-  t.decimal "target_rate",    precision: 5, scale: 2
-  t.integer "min_guarantee"
-end
-
-# ※ closing_fiscal_year_settings は schema に存在しない（未デプロイ）</code></pre>
-    </div>
-
-    <h3 class="section-title">2. DB Migration（追加1カラムのみ）</h3>
-    <div class="rakmy-card" style="padding: 20px;">
-      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code>class AddBudgetStartMonthToCompanies &lt; ActiveRecord::Migration[7.2]
-  def change
-    add_column :companies, :budget_start_month, :integer, default: 1,
-               comment: "予算開始月（1-12）"
+sig { params(year: Integer).returns(T::Array[T::Hash[Symbol, T.untyped]]) }
+def budget_months(year)
+  s = budget_start_month || 1
+  (0..11).map do |offset|
+    m = ((s - 1 + offset) % 12) + 1
+    y = offset &lt; (13 - s) ? year : year + 1
+    { year: y, month: m, year_month: y * 100 + m,
+      date: Time.zone.parse("#{y}-#{m}-01") }
   end
 end</code></pre>
-    </div>
+    </div></div>
 
-    <h3 class="section-title">3. Company モデル（Sorbet対応）</h3>
-    <div class="rakmy-card" style="padding: 20px;">
-      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code># typed: strict
-class Company &lt; ApplicationRecord
-  validates :budget_start_month, inclusion: { in: 1..12 }, allow_nil: true
-
-  sig { params(year: Integer).returns(T::Hash[Symbol, Integer]) }
-  def budget_period(year)
-    s = budget_start_month || 1
-    if s == 1
-      { from: year * 100 + 1, to: year * 100 + 12 }
-    else
-      { from: year * 100 + s, to: (year + 1) * 100 + (s - 1) }
-    end
-  end
-
-  sig { params(year: Integer).returns(T::Array[T::Hash[Symbol, T.untyped]]) }
-  def budget_months(year)
-    s = budget_start_month || 1
-    (0..11).map do |offset|
-      m = ((s - 1 + offset) % 12) + 1
-      y = offset &lt; (13 - s) ? year : year + 1
-      { year: y, month: m, year_month: y * 100 + m,
-        date: Time.zone.parse("#{y}-#{m}-01") }
-    end
-  end
-end</code></pre>
-    </div>
-
-    <h3 class="section-title">4. Companies Controller</h3>
-    <div class="rakmy-card" style="padding: 20px;">
-      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code>def company_params
-  params.require(:company).permit(
-    :name, :representive, :zipcode, :prefecture_id,
-    :address, :building, :phone, :email,
-    :budget_start_month  # 追加
-  )
-end</code></pre>
-    </div>
-
-    <h3 class="section-title">5. Monthly Budgets Controller（修正例 - デフォルト範囲変更）</h3>
-    <div class="rakmy-card" style="padding: 20px;">
-      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code># 現状（最新master）:
-if params[:start_month].blank? && params[:end_month].blank?
-  current_year = Time.zone.now.year
-  @default_start_index = @all_year_months.find_index {
-    |ym| ym[:year] == current_year && ym[:month] == 1  # ← 1月固定
-  } || 0
-  @default_end_index = @all_year_months.find_index {
-    |ym| ym[:year] == current_year && ym[:month] == 12  # ← 12月固定
-  }
-end
-
-# 変更後:
-if params[:start_month].blank? && params[:end_month].blank?
-  company = Company.find(@current_scope.company_id)
-  budget_months = company.budget_months(Time.zone.now.year)
-  start_ym = budget_months.first
-  end_ym = budget_months.last
-  @default_start_index = @all_year_months.find_index {
-    |ym| ym[:year] == start_ym[:year] && ym[:month] == start_ym[:month]
-  } || 0
-  @default_end_index = @all_year_months.find_index {
-    |ym| ym[:year] == end_ym[:year] && ym[:month] == end_ym[:month]
-  }
-end</code></pre>
-    </div>
-
-    <h3 class="section-title">6. Monthly Cost Histories Controller（修正例 - 年範囲変更）</h3>
-    <div class="rakmy-card" style="padding: 20px;">
-      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code># 現状（最新master）:
-@current_year = params[:year].present? ?
-  Time.zone.parse("#{params[:year]}-01-01").to_date : Time.zone.now.to_date
-from = @current_year.beginning_of_year.strftime('%Y%m').to_i  # ← 1月固定
-to = @current_year.end_of_year.strftime('%Y%m').to_i          # ← 12月固定
-
-# 変更後:
-company = Company.find(@current_scope.company_id)
-year = params[:year].present? ? params[:year].to_i : Time.zone.now.year
-period = company.budget_period(year)
-from = period[:from]  # 例: 202604
-to = period[:to]      # 例: 202703</code></pre>
-    </div>
-
-    <h3 class="section-title">7. 権限</h3>
+    <h3 class="section-title">修正対象ファイル</h3>
     <table class="spec-table">
-      <tr><th>ロール</th><th>閲覧</th><th>変更</th></tr>
-      <tr><td>管理（Master）</td><td>&#10003;</td><td>&#10003;</td></tr>
-      <tr><td>本部（Manager）</td><td>&#10003;</td><td>&#10003;</td></tr>
-      <tr><td>店長（Shop Manager）</td><td>&#10003;</td><td>&#10005;</td></tr>
-      <tr><td>店員（Staff）</td><td>&#10005;</td><td>&#10005;</td></tr>
+      <tr><th>ファイル</th><th>修正内容</th></tr>
+      <tr><td><code>companies_controller.rb</code></td><td>company_paramsに<code>:budget_start_month</code>追加</td></tr>
+      <tr><td><code>profile.html.haml</code></td><td>予算期間設定セクション追加</td></tr>
+      <tr><td><code>monthly_budgets_controller.rb</code></td><td>indexのデフォルトstart/endを<code>budget_months</code>起点に</td></tr>
+      <tr><td><code>annual_budget_summary.rb</code></td><td><code>build_annual_budget_summary</code>のデフォルトfrom/to変更</td></tr>
+      <tr><td><code>monthly_cost_histories_controller.rb</code></td><td><code>beginning_of_year</code>→<code>budget_period</code></td></tr>
+      <tr><td><code>company.rb</code></td><td>バリデーション + <code>budget_period</code>/<code>budget_months</code>追加</td></tr>
     </table>
+
+    <h3 class="section-title">地代家賃設定との関係</h3>
+    <div class="callout green" style="font-size:12px;">
+      <strong>同期しない。</strong>地代家賃の適用開始日（<code>effective_from</code>）は物件契約に基づく日付。予算開始月とは独立して管理する。適用月モーダルも地代家賃の適用開始日から算出し、予算開始月には連動しない。
+    </div>
   </div>
 </div>
 
@@ -1099,74 +511,16 @@ function showPage(id) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   const tabs = document.querySelectorAll('.nav-tab');
-  const tabMap = { overview: 0, setting: 1, impact: 2, annual: 3, code: 4 };
-  tabs[tabMap[id]].classList.add('active');
+  const map = { 'overview':0, 'company-info':2, 'budget-list':4, 'annual':5, 'cost-history':6, 'bva':7, 'monthly':8, 'progress':9, 'sensitivity':10, 'code':12 };
+  if (tabs[map[id]]) tabs[map[id]].classList.add('active');
 }
-
-function toggleCard(header) {
-  const body = header.nextElementSibling;
-  const arrow = header.querySelector('.arrow');
-  body.classList.toggle('open');
-  arrow.classList.toggle('open');
-}
-
 function updatePreview() {
-  const month = parseInt(document.getElementById('budgetStartMonth').value);
-  const year = 2026;
-  let endMonth, endYear;
-  if (month === 1) { endMonth = 12; endYear = year; }
-  else { endMonth = month - 1; endYear = year + 1; }
-  document.getElementById('previewPeriod').textContent = `${year}年${month}月 〜 ${endYear}年${endMonth}月`;
+  const m = parseInt(document.getElementById('budgetMonth').value);
+  const y = 2026;
+  const em = m === 1 ? 12 : m - 1;
+  const ey = m === 1 ? y : y + 1;
+  document.getElementById('previewText').textContent = `${y}年${m}月 〜 ${ey}年${em}月`;
 }
-
-function updateAnnualTable() {
-  const startMonth = parseInt(document.getElementById('annualStartMonth').value);
-  const year = 2026;
-
-  let beforeHtml = '';
-  for (let m = 1; m <= 12; m++) {
-    beforeHtml += `<div class="month-cell active">${m}月</div>`;
-  }
-  document.getElementById('beforeMonths').innerHTML = beforeHtml;
-
-  let afterHtml = '';
-  for (let i = 0; i < 12; i++) {
-    const m = ((startMonth - 1 + i) % 12) + 1;
-    const cls = i === 0 ? 'start' : 'active';
-    afterHtml += `<div class="month-cell ${cls}">${m}月</div>`;
-  }
-  document.getElementById('afterMonths').innerHTML = afterHtml;
-
-  const rows = [
-    { label: '月次目標利益', values: [800000,850000,900000,950000,1000000,1050000,900000,880000,920000,960000,1100000,1200000] },
-    { label: '目標FD仕入費率', values: [32.0,31.5,31.0,30.5,30.0,29.5,31.0,31.5,30.5,30.0,29.0,28.5], pct: true },
-    { label: '目標PA人件費率', values: [25.0,24.5,24.0,23.5,23.0,22.5,24.0,24.5,23.5,23.0,22.0,21.5], pct: true },
-    { label: '月間売上目標', values: [5000000,5200000,5500000,5800000,6000000,6200000,5500000,5300000,5600000,5900000,6500000,7000000] },
-    { label: '目標客単価', values: [2800,2850,2900,2950,3000,3050,2900,2880,2920,2960,3100,3200] },
-  ];
-
-  let html = '<thead><tr><th style="min-width:160px;">項目</th>';
-  for (let i = 0; i < 12; i++) {
-    const m = ((startMonth - 1 + i) % 12) + 1;
-    const y = i < (13 - startMonth) ? year : year + 1;
-    const cls = i === 0 ? ' class="start-month"' : '';
-    html += `<th${cls} style="min-width:100px;">${y}年${m}月</th>`;
-  }
-  html += '</tr></thead><tbody>';
-  rows.forEach(row => {
-    html += `<tr><td class="label-cell">${row.label}</td>`;
-    for (let i = 0; i < 12; i++) {
-      const val = row.values[i];
-      html += row.pct ? `<td>${val.toFixed(1)}%</td>` : `<td>&yen;${val.toLocaleString()}</td>`;
-    }
-    html += '</tr>';
-  });
-  html += '</tbody>';
-  document.getElementById('annualTable').innerHTML = html;
-}
-
-updatePreview();
-updateAnnualTable();
 </script>
 
 </body>
