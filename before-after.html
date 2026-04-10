@@ -100,6 +100,10 @@
   <div class="nav-tabs">
     <div class="nav-tab active" onclick="showPage('budget-list')">予算設定: 一覧</div>
     <div class="nav-tab" onclick="showPage('annual')">年間予実対比</div>
+    <div class="nav-tab" onclick="showPage('cost-history')">費用設定: 履歴</div>
+    <div class="nav-tab" onclick="showPage('monthly')">月次集計</div>
+    <div class="nav-tab" onclick="showPage('progress')">進捗分析</div>
+    <div class="nav-tab" onclick="showPage('sensitivity')">感度分析</div>
     <div class="nav-tab" onclick="showPage('bva')">予実対比</div>
   </div>
 </div>
@@ -381,13 +385,365 @@
   </div>
 </div>
 
+<!-- ============ Page 4: 費用設定: 履歴 ============ -->
+<div id="page-cost-history" class="page">
+  <div class="container">
+    <div class="page-title">費用設定: 履歴 <span class="scope-tag shop">店舗スコープ</span></div>
+    <div class="page-subtitle">年ナビゲーションと表示範囲がカレンダー年から予算年度に変わる</div>
+
+    <div class="ba-row">
+      <div class="ba-box before">
+        <div class="ba-label"><span class="dot"></span>Before（現状: カレンダー年）</div>
+        <div class="rakmy-screen">
+          <div class="screen-header">
+            <h3>費用設定 - 地代家賃</h3>
+            <div class="breadcrumb">ホーム &gt; 費用設定 &gt; 地代家賃</div>
+          </div>
+          <div class="screen-toolbar">
+            <span style="font-size:12px; color:#999;">&#9664; 前年</span>
+            <span style="font-size:14px; font-weight:700; margin:0 12px;">2026年</span>
+            <span style="font-size:12px; color:#2ec4a5;">翌年 &#9654;</span>
+          </div>
+          <div class="screen-body">
+            <table class="data-table">
+              <thead><tr><th style="min-width:120px;">年月</th><th>費用予算</th><th>アクション</th></tr></thead>
+              <tbody>
+                <tr><td class="label-cell">2026年1月</td><td>¥218,700</td><td>-</td></tr>
+                <tr><td class="label-cell">2026年2月</td><td>¥218,700</td><td>-</td></tr>
+                <tr><td class="label-cell">2026年3月</td><td>¥218,700</td><td>-</td></tr>
+                <tr><td class="label-cell">2026年4月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+                <tr><td class="label-cell">2026年5月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+                <tr style="color:#ccc;"><td>...</td><td>...</td><td></td></tr>
+                <tr><td class="label-cell">2026年12月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="ba-box after">
+        <div class="ba-label"><span class="dot"></span>After（予算開始月: 4月）</div>
+        <div class="rakmy-screen">
+          <div class="screen-header">
+            <h3>費用設定 - 地代家賃</h3>
+            <div class="breadcrumb">ホーム &gt; 費用設定 &gt; 地代家賃</div>
+          </div>
+          <div class="screen-toolbar change-highlight">
+            <span style="font-size:12px; color:#999;">&#9664; 前年度</span>
+            <span style="font-size:14px; font-weight:700; margin:0 12px; color:#1a9e7e;">2026年度</span>
+            <span style="font-size:12px; color:#2ec4a5;">翌年度 &#9654;</span>
+          </div>
+          <div class="screen-body">
+            <table class="data-table">
+              <thead><tr><th style="min-width:120px;">年月</th><th>費用予算</th><th>アクション</th></tr></thead>
+              <tbody>
+                <tr class="change-highlight"><td class="label-cell" style="font-weight:700; color:#1a9e7e;">2026年4月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+                <tr><td class="label-cell">2026年5月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+                <tr><td class="label-cell">2026年6月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+                <tr style="color:#ccc;"><td>...</td><td>...</td><td></td></tr>
+                <tr><td class="label-cell">2027年1月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+                <tr><td class="label-cell">2027年2月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+                <tr><td class="label-cell">2027年3月</td><td>¥218,700</td><td><span class="btn-sm btn-outline">設定</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="info-callout green">
+            年ナビが「前年/翌年」→「前年度/翌年度」に変更。表示範囲が4月〜翌3月になり、year_monthクエリ範囲も連動。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Page 5: 月次集計 ============ -->
+<div id="page-monthly" class="page">
+  <div class="container">
+    <div class="page-title">集計: 月次集計（MQ分析） <span class="scope-tag shop">店舗スコープ</span></div>
+    <div class="page-subtitle">月セレクタの選択肢と目標値の参照元に影響</div>
+
+    <div class="ba-row">
+      <div class="ba-box before">
+        <div class="ba-label"><span class="dot"></span>Before（現状）</div>
+        <div class="rakmy-screen">
+          <div class="screen-header">
+            <h3>月次集計</h3>
+            <div class="breadcrumb">ホーム &gt; 月次集計 &gt; 2026年4月</div>
+          </div>
+          <div class="screen-toolbar">
+            <span style="font-size:11px; color:#999;">対象月選択</span>
+            <span class="sel-box">2026年04月</span>
+          </div>
+          <div class="screen-body">
+            <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:16px;">
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px; text-align:center;">
+                <div style="font-size:9px; color:#999;">P 客単価（税抜）</div>
+                <div style="font-size:16px; font-weight:700;">¥5,089</div>
+                <div style="font-size:10px; color:#999;">¥5,000</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px; text-align:center;">
+                <div style="font-size:9px; color:#999;">V 変動費単価</div>
+                <div style="font-size:16px; font-weight:700;">¥1,525</div>
+                <div style="font-size:10px; color:#999;">¥1,700</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px; text-align:center;">
+                <div style="font-size:9px; color:#999;">Q 客数</div>
+                <div style="font-size:16px; font-weight:700;">1,054</div>
+                <div style="font-size:10px; color:#999;">3500</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px; text-align:center;">
+                <div style="font-size:9px; color:#999;">P*Q 売上（税抜）</div>
+                <div style="font-size:16px; font-weight:700;">¥5,364,177</div>
+                <div style="font-size:10px; color:#999;">¥17,500,000</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px; text-align:center;">
+                <div style="font-size:9px; color:#999;">V*Q 変動費</div>
+                <div style="font-size:16px; font-weight:700;">¥1,607,178</div>
+                <div style="font-size:10px; color:#999;">¥5,950,000</div>
+              </div>
+            </div>
+            <div style="font-size:10px; color:#999; padding:4px 0;">セレクタ選択肢: 2026年04月, 2026年03月, 2026年02月, 2026年01月, 2025年12月, ... （過去24ヶ月）</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ba-box after">
+        <div class="ba-label"><span class="dot"></span>After（予算開始月: 4月）</div>
+        <div class="rakmy-screen">
+          <div class="screen-header">
+            <h3>月次集計</h3>
+            <div class="breadcrumb">ホーム &gt; 月次集計 &gt; 2026年4月</div>
+          </div>
+          <div class="screen-toolbar">
+            <span style="font-size:11px; color:#999;">対象月選択</span>
+            <span class="sel-box">2026年04月</span>
+          </div>
+          <div class="screen-body">
+            <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:16px;">
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px; text-align:center;">
+                <div style="font-size:9px; color:#999;">P 客単価（税抜）</div>
+                <div style="font-size:16px; font-weight:700;">¥5,089</div>
+                <div style="font-size:10px; color:#999;">¥5,000</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px; text-align:center;">
+                <div style="font-size:9px; color:#999;">V 変動費単価</div>
+                <div style="font-size:16px; font-weight:700;">¥1,525</div>
+                <div style="font-size:10px; color:#999;">¥1,700</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px; text-align:center;">
+                <div style="font-size:9px; color:#999;">Q 客数</div>
+                <div style="font-size:16px; font-weight:700;">1,054</div>
+                <div style="font-size:10px; color:#999;">3500</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px; text-align:center;">
+                <div style="font-size:9px; color:#999;">P*Q 売上（税抜）</div>
+                <div style="font-size:16px; font-weight:700;">¥5,364,177</div>
+                <div style="font-size:10px; color:#999;">¥17,500,000</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px; text-align:center;">
+                <div style="font-size:9px; color:#999;">V*Q 変動費</div>
+                <div style="font-size:16px; font-weight:700;">¥1,607,178</div>
+                <div style="font-size:10px; color:#999;">¥5,950,000</div>
+              </div>
+            </div>
+            <div class="change-highlight" style="font-size:10px; color:#1a9e7e; padding:8px; border-radius:6px;">
+              セレクタ選択肢: <strong>【2026年度】</strong>2026年04月, 05月, 06月, ... 2027年03月 &nbsp;|&nbsp; <strong>【2025年度】</strong>2025年04月, 05月, ... 2026年03月
+            </div>
+          </div>
+          <div class="info-callout green">
+            データ表示は同一。月セレクタの選択肢が予算年度ごとにグルーピングされ、年度の切り替えが直感的になる。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Page 6: 進捗分析 ============ -->
+<div id="page-progress" class="page">
+  <div class="container">
+    <div class="page-title">詳細分析: 進捗分析 <span class="scope-tag shop">店舗スコープ</span> <span class="scope-tag company">会社スコープ</span></div>
+    <div class="page-subtitle">月セレクタと目標値の参照。目標値はMonthlyBudgetから月単位取得のため変化なし。</div>
+
+    <div class="ba-row">
+      <div class="ba-box before">
+        <div class="ba-label"><span class="dot"></span>Before（現状）</div>
+        <div class="rakmy-screen">
+          <div class="screen-header"><h3>進捗分析</h3></div>
+          <div class="screen-toolbar">
+            <span style="font-size:11px; color:#999;">表示データ</span>
+            <span class="sel-box">2026年04月</span>
+          </div>
+          <div class="screen-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+              <div style="background:#f8f9fa; border-radius:8px; padding:14px;">
+                <div style="font-size:11px; font-weight:600;">利益率</div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:4px;">
+                  <span style="font-size:20px; font-weight:700;">22.7%</span>
+                  <span style="font-size:10px; color:#999;">目標利益率 22.7%</span>
+                </div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:14px;">
+                <div style="font-size:11px; font-weight:600;">FD仕入費率</div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:4px;">
+                  <span style="font-size:20px; font-weight:700;">24.2%</span>
+                  <span style="font-size:10px; color:#999;">目標FD仕入費率 29.2%</span>
+                </div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:14px;">
+                <div style="font-size:11px; font-weight:600;">PA人件費率</div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:4px;">
+                  <span style="font-size:20px; font-weight:700;">3.2%</span>
+                  <span style="font-size:10px; color:#999;">目標PA人件費率 4.8%</span>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:10px; color:#999; padding:8px 0;">セレクタ: 2026年04月, 2026年03月, 2026年02月, ... （時系列順）</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ba-box after">
+        <div class="ba-label"><span class="dot"></span>After（予算開始月: 4月）</div>
+        <div class="rakmy-screen">
+          <div class="screen-header"><h3>進捗分析</h3></div>
+          <div class="screen-toolbar">
+            <span style="font-size:11px; color:#999;">表示データ</span>
+            <span class="sel-box">2026年04月</span>
+          </div>
+          <div class="screen-body">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;">
+              <div style="background:#f8f9fa; border-radius:8px; padding:14px;">
+                <div style="font-size:11px; font-weight:600;">利益率</div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:4px;">
+                  <span style="font-size:20px; font-weight:700;">22.7%</span>
+                  <span style="font-size:10px; color:#999;">目標利益率 22.7%</span>
+                </div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:14px;">
+                <div style="font-size:11px; font-weight:600;">FD仕入費率</div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:4px;">
+                  <span style="font-size:20px; font-weight:700;">24.2%</span>
+                  <span style="font-size:10px; color:#999;">目標FD仕入費率 29.2%</span>
+                </div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:14px;">
+                <div style="font-size:11px; font-weight:600;">PA人件費率</div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:4px;">
+                  <span style="font-size:20px; font-weight:700;">3.2%</span>
+                  <span style="font-size:10px; color:#999;">目標PA人件費率 4.8%</span>
+                </div>
+              </div>
+            </div>
+            <div class="change-highlight" style="font-size:10px; color:#1a9e7e; padding:8px; border-radius:6px;">
+              セレクタ: <strong>【2026年度】</strong>2026年04月, 05月, ... 2027年03月 &nbsp;|&nbsp; <strong>【2025年度】</strong>2025年04月, ... 2026年03月
+            </div>
+          </div>
+          <div class="info-callout green">
+            目標値（FD仕入費率29.2%、PA人件費率4.8%等）はMonthlyBudgetから月単位取得のため変化なし。月セレクタの年度グルーピングのみ変更。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Page 7: 感度分析 ============ -->
+<div id="page-sensitivity" class="page">
+  <div class="container">
+    <div class="page-title">詳細分析: 感度分析 <span class="scope-tag shop">店舗スコープ</span></div>
+    <div class="page-subtitle">月セレクタの年度グルーピング。固定費・目標値の取得ロジックは変化なし。</div>
+
+    <div class="ba-row">
+      <div class="ba-box before">
+        <div class="ba-label"><span class="dot"></span>Before（現状）</div>
+        <div class="rakmy-screen">
+          <div class="screen-header"><h3>感度分析</h3><div class="breadcrumb">ホーム &gt; 感度分析 &gt; 2026年4月</div></div>
+          <div class="screen-toolbar">
+            <span style="font-size:11px; color:#999;">対象月選択</span>
+            <span class="sel-box">2026年04月</span>
+          </div>
+          <div class="screen-body">
+            <div style="display:grid; grid-template-columns:repeat(3,1fr) repeat(2,1fr); gap:10px; margin-bottom:12px;">
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px;">
+                <div style="font-size:9px; color:#999;">P 客単価（税抜）</div>
+                <div style="font-size:15px; font-weight:700;">¥5,089</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px;">
+                <div style="font-size:9px; color:#999;">V 変動費単価</div>
+                <div style="font-size:15px; font-weight:700;">¥1,394</div>
+                <div style="font-size:10px; color:#666;">変動費率 27.4%</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px;">
+                <div style="font-size:9px; color:#999;">Q 客数</div>
+                <div style="font-size:15px; font-weight:700;">1,054</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px;">
+                <div style="font-size:9px; color:#999;">F 固定費</div>
+                <div style="font-size:15px; font-weight:700;">¥2,272,200</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px;">
+                <div style="font-size:9px; color:#999;">G 利益</div>
+                <div style="font-size:15px; font-weight:700;">¥1,622,193</div>
+              </div>
+            </div>
+            <div style="font-size:10px; color:#999; padding:4px 0;">セレクタ: 2026年04月, 2026年03月, 2026年02月, ... （時系列順）</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ba-box after">
+        <div class="ba-label"><span class="dot"></span>After（予算開始月: 4月）</div>
+        <div class="rakmy-screen">
+          <div class="screen-header"><h3>感度分析</h3><div class="breadcrumb">ホーム &gt; 感度分析 &gt; 2026年4月</div></div>
+          <div class="screen-toolbar">
+            <span style="font-size:11px; color:#999;">対象月選択</span>
+            <span class="sel-box">2026年04月</span>
+          </div>
+          <div class="screen-body">
+            <div style="display:grid; grid-template-columns:repeat(3,1fr) repeat(2,1fr); gap:10px; margin-bottom:12px;">
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px;">
+                <div style="font-size:9px; color:#999;">P 客単価（税抜）</div>
+                <div style="font-size:15px; font-weight:700;">¥5,089</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px;">
+                <div style="font-size:9px; color:#999;">V 変動費単価</div>
+                <div style="font-size:15px; font-weight:700;">¥1,394</div>
+                <div style="font-size:10px; color:#666;">変動費率 27.4%</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px;">
+                <div style="font-size:9px; color:#999;">Q 客数</div>
+                <div style="font-size:15px; font-weight:700;">1,054</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px;">
+                <div style="font-size:9px; color:#999;">F 固定費</div>
+                <div style="font-size:15px; font-weight:700;">¥2,272,200</div>
+              </div>
+              <div style="background:#f8f9fa; border-radius:8px; padding:12px;">
+                <div style="font-size:9px; color:#999;">G 利益</div>
+                <div style="font-size:15px; font-weight:700;">¥1,622,193</div>
+              </div>
+            </div>
+            <div class="change-highlight" style="font-size:10px; color:#1a9e7e; padding:8px; border-radius:6px;">
+              セレクタ: <strong>【2026年度】</strong>2026年04月, 05月, ... 2027年03月 &nbsp;|&nbsp; <strong>【2025年度】</strong>2025年04月, ... 2026年03月
+            </div>
+          </div>
+          <div class="info-callout green">
+            データ表示は同一（固定費¥2,272,200、利益¥1,622,193等は月単位取得で変化なし）。月セレクタの年度グルーピングのみ変更。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   const tabs = document.querySelectorAll('.nav-tab');
-  const tabMap = { 'budget-list': 0, 'annual': 1, 'bva': 2 };
+  const tabMap = { 'budget-list': 0, 'annual': 1, 'cost-history': 2, 'monthly': 3, 'progress': 4, 'sensitivity': 5, 'bva': 6 };
   tabs[tabMap[id]].classList.add('active');
 }
 </script>
