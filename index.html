@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>予算期間設定 仕様モック v1.0</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; background: #f5f8fa; color: #333; }
+
+    /* Mock Navigation */
+    .mock-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: #1a1a2e; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .nav-top { display: flex; align-items: center; height: 44px; padding: 0 20px; }
+    .nav-top h1 { font-size: 13px; font-weight: 600; margin-right: 16px; }
+    .nav-top .version { font-size: 10px; background: #2ec4a5; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .nav-tabs { display: flex; gap: 1px; overflow-x: auto; padding: 0 20px; background: rgba(0,0,0,0.15); }
+    .nav-tab { color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 500; padding: 9px 12px; white-space: nowrap; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .nav-tab:hover { color: rgba(255,255,255,0.8); }
+    .nav-tab.active { color: #fff; border-bottom-color: #2ec4a5; }
+
+    /* Page */
+    .page { display: none; padding-top: 86px; min-height: 100vh; }
+    .page.active { display: block; }
+
+    /* Overview */
+    .overview { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .overview h2 { font-size: 20px; margin-bottom: 4px; }
+    .overview .subtitle { color: #666; font-size: 13px; margin-bottom: 24px; }
+
+    .info-box { background: linear-gradient(135deg, #e8f8f5, #eef0ff); border: 2px solid #2ec4a5; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; font-size: 12px; line-height: 1.8; }
+    .info-box strong { color: #1a9e7e; }
+
+    .spec-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+    .spec-table th { background: #f8f9fa; text-align: left; padding: 9px 12px; font-size: 11px; font-weight: 600; border-bottom: 1px solid #eee; }
+    .spec-table td { padding: 9px 12px; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
+
+    .flow-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .flow-card { background: #fff; border-radius: 10px; padding: 20px; border: 2px solid #e8e8e8; cursor: pointer; transition: all 0.2s; }
+    .flow-card:hover { border-color: #2ec4a5; box-shadow: 0 4px 12px rgba(46,196,165,0.1); }
+    .flow-card .badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-bottom: 8px; }
+    .flow-card .badge.setting { background: #e8f8f5; color: #1a9e7e; }
+    .flow-card .badge.display { background: #eef0ff; color: #5264f0; }
+    .flow-card .badge.db { background: #fef3e2; color: #e67e22; }
+    .flow-card h3 { font-size: 14px; margin-bottom: 4px; }
+    .flow-card p { font-size: 11px; color: #666; line-height: 1.5; }
+
+    /* Rakmy-like UI */
+    .rakmy-container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    .rakmy-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .rakmy-header h1 { font-size: 16px; font-weight: 700; color: #181c32; }
+    .rakmy-header .help-icon { width: 20px; height: 20px; background: #e8e8e8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999; cursor: pointer; }
+    .rakmy-breadcrumb { font-size: 11px; color: #999; margin-bottom: 24px; }
+    .rakmy-breadcrumb a { color: #999; text-decoration: none; }
+    .rakmy-breadcrumb a:hover { color: #2ec4a5; }
+
+    .rakmy-card { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 24px; }
+    .rakmy-section-header { padding: 20px 28px; border-bottom: 1px solid #eff2f5; }
+    .rakmy-section-header h3 { font-size: 14px; font-weight: 700; color: #181c32; }
+    .rakmy-form-body { padding: 28px; }
+
+    .form-row { display: flex; align-items: flex-start; margin-bottom: 24px; }
+    .form-row:last-child { margin-bottom: 0; }
+    .form-label { width: 260px; flex-shrink: 0; padding-top: 10px; font-size: 13px; font-weight: 600; color: #3f4254; }
+    .form-label .required { color: #f1416c; margin-left: 2px; }
+    .form-field { flex: 1; }
+    .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e4e6ef; border-radius: 8px; font-size: 13px; background: #f5f8fa; color: #5e6278; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: #2ec4a5; background: #fff; }
+    .form-input.disabled { background: #f5f8fa; color: #a1a5b7; cursor: not-allowed; }
+    .form-select { width: 100%; padding: 10px 14px; border: 1px solid #e4e6ef; border-radius: 8px; font-size: 13px; background: #f5f8fa; color: #5e6278; outline: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; cursor: pointer; }
+    .form-select:focus { border-color: #2ec4a5; background-color: #fff; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+    .form-hint { font-size: 11px; color: #a1a5b7; margin-top: 6px; }
+    .form-check { display: flex; align-items: center; font-size: 11px; color: #2ec4a5; }
+    .form-check svg { width: 16px; height: 16px; margin-left: 8px; }
+    .valid-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #2ec4a5; font-size: 14px; }
+    .input-wrapper { position: relative; }
+    .input-wrapper .form-input { padding-right: 36px; }
+
+    .budget-preview { margin-top: 10px; padding: 12px 16px; background: #f0faf7; border: 1px solid #d4efea; border-radius: 8px; font-size: 12px; color: #1a9e7e; display: flex; align-items: center; gap: 8px; }
+    .budget-preview .icon { font-size: 14px; }
+    .budget-preview .period { font-weight: 600; }
+
+    .section-divider { border: none; border-top: 1px solid #eff2f5; margin: 0; }
+
+    .form-footer { display: flex; justify-content: flex-end; padding: 20px 28px; border-top: 1px solid #eff2f5; }
+    .btn-primary { background: #2ec4a5; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .btn-primary:hover { background: #27b094; }
+
+    /* New section highlight */
+    .new-section { position: relative; }
+    .new-badge { position: absolute; top: 16px; right: 28px; background: #f1416c; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; }
+    .highlight-area { background: #fffbf0; border-left: 3px solid #ffc107; }
+
+    /* Impact diagram */
+    .impact-diagram { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; padding: 20px; }
+    .impact-center { background: #2ec4a5; color: #fff; padding: 16px 20px; border-radius: 12px; font-size: 13px; font-weight: 700; text-align: center; min-width: 140px; }
+    .impact-arrow { font-size: 20px; color: #ccc; }
+    .impact-targets { display: flex; flex-direction: column; gap: 8px; }
+    .impact-target { background: #fff; border: 2px solid #e8e8e8; border-radius: 8px; padding: 8px 14px; font-size: 11px; font-weight: 600; color: #5264f0; }
+
+    /* Comparison */
+    .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .comparison-box { background: #fff; border-radius: 10px; padding: 16px; border: 2px solid #e8e8e8; }
+    .comparison-box.before { border-color: #f1416c; }
+    .comparison-box.after { border-color: #2ec4a5; }
+    .comparison-box h4 { font-size: 12px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .comparison-box h4 .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .comparison-box.before h4 .dot { background: #f1416c; }
+    .comparison-box.after h4 .dot { background: #2ec4a5; }
+    .month-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+    .month-cell { text-align: center; padding: 6px 4px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+    .month-cell.active { background: #e8f8f5; color: #1a9e7e; }
+    .month-cell.inactive { background: #f5f5f5; color: #ccc; }
+    .month-cell.start { background: #2ec4a5; color: #fff; }
+
+    /* Annual summary mock */
+    .annual-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .annual-table th { background: #f8f9fa; padding: 8px 6px; text-align: center; font-weight: 600; border: 1px solid #eee; white-space: nowrap; }
+    .annual-table td { padding: 8px 6px; text-align: right; border: 1px solid #eee; }
+    .annual-table td.label-cell { text-align: left; font-weight: 600; color: #3f4254; background: #fafbfc; white-space: nowrap; }
+    .annual-table th.start-month { background: #e8f8f5; color: #1a9e7e; }
+  </style>
+</head>
+<body>
+
+<div class="mock-nav">
+  <div class="nav-top">
+    <h1>予算期間設定 仕様モック</h1>
+    <span class="version">v1.0</span>
+  </div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showPage('overview')">概要</div>
+    <div class="nav-tab" onclick="showPage('setting')">設定画面</div>
+    <div class="nav-tab" onclick="showPage('annual')">年間予算サマリー</div>
+    <div class="nav-tab" onclick="showPage('impact')">影響範囲</div>
+  </div>
+</div>
+
+<!-- Page 1: Overview -->
+<div id="page-overview" class="page active">
+  <div class="overview">
+    <h2>予算期間設定</h2>
+    <p class="subtitle">会社情報画面に予算開始月を設定し、予算関連画面で一貫した期間表示を実現する</p>
+
+    <div class="info-box">
+      <strong>課題:</strong> 現状、設定側（月次予算設定）と表示側（予実対比、年間予実対比、月次集計、感度分析）で一貫した予算開始月の設定がない。全画面がカレンダー年（1月〜12月）をハードコードしている。<br>
+      <strong>解決:</strong> 会社情報画面に「予算開始月」を追加し、全予算関連画面で参照する。
+    </div>
+
+    <div class="flow-cards">
+      <div class="flow-card" onclick="showPage('setting')">
+        <span class="badge setting">設定</span>
+        <h3>会社情報画面</h3>
+        <p>担当者メールアドレスの下に「予算期間設定」セクションを追加。予算開始月（1〜12月）をセレクトボックスで設定。</p>
+      </div>
+      <div class="flow-card" onclick="showPage('annual')">
+        <span class="badge display">表示</span>
+        <h3>年間予算サマリー</h3>
+        <p>予算開始月を起点に12ヶ月を横並び表示。例: 4月開始なら 4月〜翌3月。</p>
+      </div>
+      <div class="flow-card" onclick="showPage('impact')">
+        <span class="badge db">影響</span>
+        <h3>影響を受ける画面</h3>
+        <p>予実対比、年間予実対比、月次集計、感度分析の月選択・期間表示が予算年度に準拠。</p>
+      </div>
+    </div>
+
+    <h3 style="font-size: 14px; margin-bottom: 12px;">DB変更</h3>
+    <table class="spec-table">
+      <tr><th>テーブル</th><th>カラム</th><th>型</th><th>デフォルト</th><th>説明</th></tr>
+      <tr><td>companies</td><td>budget_start_month</td><td>integer</td><td>1</td><td>予算開始月（1〜12）</td></tr>
+    </table>
+
+    <h3 style="font-size: 14px; margin-bottom: 12px;">予算年度の計算例</h3>
+    <table class="spec-table">
+      <tr><th>予算開始月</th><th>2026年度の範囲</th><th>year_month値</th></tr>
+      <tr><td>1月（デフォルト）</td><td>2026年1月 〜 2026年12月</td><td>202601 〜 202612</td></tr>
+      <tr><td>4月</td><td>2026年4月 〜 2027年3月</td><td>202604 〜 202703</td></tr>
+      <tr><td>10月</td><td>2026年10月 〜 2027年9月</td><td>202610 〜 202709</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- Page 2: Setting Screen -->
+<div id="page-setting" class="page">
+  <div class="rakmy-container">
+    <div class="rakmy-header">
+      <h1>会社情報</h1>
+      <div class="help-icon">?</div>
+    </div>
+    <div class="rakmy-breadcrumb">
+      <a href="#">ホーム</a> &gt; 会社情報
+    </div>
+
+    <div class="rakmy-card">
+      <!-- 既存: 会社基本情報 -->
+      <div class="rakmy-form-body">
+        <div class="form-row">
+          <div class="form-label">会社または個人事業主名<span class="required">*</span></div>
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input type="text" class="form-input" value="青山フード株式会社" readonly>
+              <span class="valid-icon">&#10003;</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-label">代表者名<span class="required">*</span></div>
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input type="text" class="form-input" value="代表者1" readonly>
+              <span class="valid-icon">&#10003;</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-label">郵便番号<span class="required">*</span></div>
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input type="text" class="form-input" value="1103846" readonly>
+              <span class="valid-icon">&#10003;</span>
+            </div>
+            <div class="form-hint">ハイフンなしでご入力ください</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-label">都道府県<span class="required">*</span></div>
+          <div class="form-field">
+            <select class="form-select" disabled><option>三重県</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-label">住所<span class="required">*</span></div>
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input type="text" class="form-input" value="住所1" readonly>
+              <span class="valid-icon">&#10003;</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-label">建物</div>
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input type="text" class="form-input" value="ビル4階" readonly>
+              <span class="valid-icon">&#10003;</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-label">電話番号<span class="required">*</span></div>
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input type="text" class="form-input" value="0721388383" readonly>
+              <span class="valid-icon">&#10003;</span>
+            </div>
+            <div class="form-hint">ハイフンなしの半角数字でご入力ください</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 既存: 担当者情報 -->
+      <div class="rakmy-section-header">
+        <h3>担当者情報</h3>
+      </div>
+      <div class="rakmy-form-body">
+        <div class="form-row">
+          <div class="form-label">担当者名</div>
+          <div class="form-field">
+            <input type="text" class="form-input disabled" value="管理者1" disabled>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-label">担当者メールアドレス<span class="required">*</span></div>
+          <div class="form-field">
+            <div class="input-wrapper">
+              <input type="text" class="form-input" value="company1@example.com" readonly>
+              <span class="valid-icon">&#10003;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEW: 予算期間設定 -->
+      <div class="rakmy-section-header new-section highlight-area">
+        <h3>予算期間設定</h3>
+        <span class="new-badge">NEW</span>
+      </div>
+      <div class="rakmy-form-body highlight-area">
+        <div class="form-row">
+          <div class="form-label">予算開始月</div>
+          <div class="form-field">
+            <select class="form-select" id="budgetStartMonth" onchange="updatePreview()">
+              <option value="1">1月</option>
+              <option value="2">2月</option>
+              <option value="3">3月</option>
+              <option value="4" selected>4月</option>
+              <option value="5">5月</option>
+              <option value="6">6月</option>
+              <option value="7">7月</option>
+              <option value="8">8月</option>
+              <option value="9">9月</option>
+              <option value="10">10月</option>
+              <option value="11">11月</option>
+              <option value="12">12月</option>
+            </select>
+            <div class="form-hint">予算年度の開始月を設定します。全店舗の予算関連画面に反映されます。</div>
+            <div class="budget-preview" id="budgetPreview">
+              <span class="icon">&#128197;</span>
+              <span>予算期間: </span>
+              <span class="period" id="previewPeriod">2026年4月 〜 2027年3月</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <button class="btn-primary">更新</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Page 3: Annual Summary -->
+<div id="page-annual" class="page">
+  <div class="rakmy-container">
+    <div class="rakmy-header">
+      <h1>予算設定: 一覧</h1>
+    </div>
+    <div class="rakmy-breadcrumb">
+      <a href="#">ホーム</a> &gt; 予算設定
+    </div>
+
+    <div class="info-box">
+      <strong>予算開始月による表示変化:</strong> セレクトボックスで開始月を変更すると、テーブルの列が予算年度に合わせて変化します。
+    </div>
+
+    <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+      <label style="font-size: 13px; font-weight: 600;">予算開始月シミュレーション:</label>
+      <select class="form-select" id="annualStartMonth" onchange="updateAnnualTable()" style="width: 120px;">
+        <option value="1">1月</option>
+        <option value="2">2月</option>
+        <option value="3">3月</option>
+        <option value="4" selected>4月</option>
+        <option value="5">5月</option>
+        <option value="6">6月</option>
+        <option value="7">7月</option>
+        <option value="8">8月</option>
+        <option value="9">9月</option>
+        <option value="10">10月</option>
+        <option value="11">11月</option>
+        <option value="12">12月</option>
+      </select>
+    </div>
+
+    <div class="comparison" style="margin-bottom: 24px;">
+      <div class="comparison-box before">
+        <h4><span class="dot"></span>現状（1月〜12月固定）</h4>
+        <div class="month-grid" id="beforeMonths"></div>
+      </div>
+      <div class="comparison-box after">
+        <h4><span class="dot"></span>変更後（予算開始月起点）</h4>
+        <div class="month-grid" id="afterMonths"></div>
+      </div>
+    </div>
+
+    <div class="rakmy-card">
+      <div class="rakmy-form-body" style="padding: 0; overflow-x: auto;">
+        <table class="annual-table" id="annualTable">
+          <!-- Generated by JS -->
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Page 4: Impact -->
+<div id="page-impact" class="page">
+  <div class="overview">
+    <h2>影響範囲</h2>
+    <p class="subtitle">予算開始月の設定が影響する画面とコントローラ</p>
+
+    <div class="rakmy-card" style="padding: 24px;">
+      <div class="impact-diagram">
+        <div class="impact-center">
+          会社情報<br>
+          <span style="font-size: 11px; font-weight: 400;">budget_start_month</span>
+        </div>
+        <div class="impact-arrow">&#8594;</div>
+        <div class="impact-targets">
+          <div class="impact-target">予算設定: 一覧（年間予算サマリー）</div>
+          <div class="impact-target">予実対比</div>
+          <div class="impact-target">年間予実対比</div>
+          <div class="impact-target">月次集計（月次実績トラック）</div>
+          <div class="impact-target">感度分析</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size: 14px; margin: 24px 0 12px;">コントローラ修正対象</h3>
+    <table class="spec-table">
+      <tr><th>ファイル</th><th>現状</th><th>修正内容</th></tr>
+      <tr>
+        <td><code>companies_controller.rb</code></td>
+        <td>budget_start_monthなし</td>
+        <td>company_paramsにbudget_start_month追加</td>
+      </tr>
+      <tr>
+        <td><code>annual_budget_summary.rb</code></td>
+        <td><code>(1..12).each</code> 固定</td>
+        <td>budget_start_month起点の12ヶ月ループに変更</td>
+      </tr>
+      <tr>
+        <td><code>monthly_budgets_controller.rb</code></td>
+        <td><code>year*100</code> 〜 <code>(year+1)*100</code></td>
+        <td>予算年度のyear_month範囲に変更</td>
+      </tr>
+      <tr>
+        <td><code>budget_vs_actuals_controller.rb</code></td>
+        <td>月選択に制限なし</td>
+        <td>予算年度内の月選択に変更</td>
+      </tr>
+      <tr>
+        <td><code>mq_analysis_controller.rb</code></td>
+        <td>24ヶ月ヒストリー</td>
+        <td>予算年度単位の月選択に変更</td>
+      </tr>
+    </table>
+
+    <h3 style="font-size: 14px; margin: 24px 0 12px;">Companyモデルに追加するメソッド</h3>
+    <div class="rakmy-card" style="padding: 20px;">
+      <pre style="font-size: 11px; line-height: 1.7; overflow-x: auto; font-family: 'SF Mono', 'Menlo', monospace; color: #333;"><code># 指定年の予算年度の開始・終了year_monthを返す
+def budget_period(year)
+  s = budget_start_month || 1
+  if s == 1
+    { from: year * 100 + 1, to: year * 100 + 12 }
+  else
+    { from: year * 100 + s, to: (year + 1) * 100 + (s - 1) }
+  end
+end
+
+# 予算年度の月リスト（表示順）を返す
+def budget_months(year)
+  s = budget_start_month || 1
+  (0..11).map do |offset|
+    m = ((s - 1 + offset) % 12) + 1
+    y = offset < (13 - s) ? year : year + 1
+    { year: y, month: m, year_month: y * 100 + m }
+  end
+end</code></pre>
+    </div>
+
+    <h3 style="font-size: 14px; margin: 24px 0 12px;">権限</h3>
+    <table class="spec-table">
+      <tr><th>ロール</th><th>閲覧</th><th>変更</th></tr>
+      <tr><td>管理（Master）</td><td>&#10003;</td><td>&#10003;</td></tr>
+      <tr><td>本部（Manager）</td><td>&#10003;</td><td>&#10003;</td></tr>
+      <tr><td>店長（Shop Manager）</td><td>&#10003;</td><td>&#10005;</td></tr>
+      <tr><td>店員（Staff）</td><td>&#10005;</td><td>&#10005;</td></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  const tabMap = { overview: 0, setting: 1, annual: 2, impact: 3 };
+  tabs[tabMap[id]].classList.add('active');
+}
+
+function updatePreview() {
+  const month = parseInt(document.getElementById('budgetStartMonth').value);
+  const year = 2026;
+  let endMonth, endYear;
+  if (month === 1) {
+    endMonth = 12;
+    endYear = year;
+  } else {
+    endMonth = month - 1;
+    endYear = year + 1;
+  }
+  document.getElementById('previewPeriod').textContent =
+    `${year}年${month}月 〜 ${endYear}年${endMonth}月`;
+}
+
+function updateAnnualTable() {
+  const startMonth = parseInt(document.getElementById('annualStartMonth').value);
+  const year = 2026;
+
+  // Before (always 1-12)
+  let beforeHtml = '';
+  for (let m = 1; m <= 12; m++) {
+    beforeHtml += `<div class="month-cell active">${m}月</div>`;
+  }
+  document.getElementById('beforeMonths').innerHTML = beforeHtml;
+
+  // After (start from budget month)
+  let afterHtml = '';
+  for (let i = 0; i < 12; i++) {
+    const m = ((startMonth - 1 + i) % 12) + 1;
+    const y = i < (13 - startMonth) ? year : year + 1;
+    const cls = i === 0 ? 'start' : 'active';
+    afterHtml += `<div class="month-cell ${cls}">${m}月</div>`;
+  }
+  document.getElementById('afterMonths').innerHTML = afterHtml;
+
+  // Annual table
+  const rows = [
+    { label: '月次目標利益', values: [800000, 850000, 900000, 950000, 1000000, 1050000, 900000, 880000, 920000, 960000, 1100000, 1200000] },
+    { label: '目標FD仕入費率', values: [32.0, 31.5, 31.0, 30.5, 30.0, 29.5, 31.0, 31.5, 30.5, 30.0, 29.0, 28.5], pct: true },
+    { label: '目標PA人件費率', values: [25.0, 24.5, 24.0, 23.5, 23.0, 22.5, 24.0, 24.5, 23.5, 23.0, 22.0, 21.5], pct: true },
+    { label: '月間売上目標', values: [5000000, 5200000, 5500000, 5800000, 6000000, 6200000, 5500000, 5300000, 5600000, 5900000, 6500000, 7000000] },
+    { label: '目標客単価', values: [2800, 2850, 2900, 2950, 3000, 3050, 2900, 2880, 2920, 2960, 3100, 3200] },
+  ];
+
+  let html = '<thead><tr><th style="min-width:160px;">項目</th>';
+  for (let i = 0; i < 12; i++) {
+    const m = ((startMonth - 1 + i) % 12) + 1;
+    const y = i < (13 - startMonth) ? year : year + 1;
+    const cls = i === 0 ? ' class="start-month"' : '';
+    html += `<th${cls} style="min-width:100px;">${y}年${m}月</th>`;
+  }
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(row => {
+    html += `<tr><td class="label-cell">${row.label}</td>`;
+    for (let i = 0; i < 12; i++) {
+      const val = row.values[i];
+      if (row.pct) {
+        html += `<td>${val.toFixed(1)}%</td>`;
+      } else {
+        html += `<td>&yen;${val.toLocaleString()}</td>`;
+      }
+    }
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  document.getElementById('annualTable').innerHTML = html;
+}
+
+// Init
+updatePreview();
+updateAnnualTable();
+</script>
+
+</body>
+</html>
