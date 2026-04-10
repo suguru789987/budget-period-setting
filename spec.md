@@ -1,4 +1,4 @@
-# 予算期間設定 仕様書 v1.2（最新master 2026-04-09 準拠）
+# 予算期間設定 仕様書 v1.3（最新master 2026-04-09 準拠 / 全画面影響分析済み）
 
 ## 概要
 
@@ -8,136 +8,105 @@
 
 現状、予算の表示期間は「店舗作成日〜現在+3年」の全月リストから手動選択する形式で、**予算年度（会計年度）の概念がない**。月次予算設定は任意の期間を自由選択できるが、4月始まりや10月始まりなどの年度単位で管理する仕組みがない。
 
-## 最新masterの現状（2026-04-09時点）
+## データモデル設計
 
-### データ構造
-
-```
-companies テーブル
-├── id, name, representive, zipcode, prefecture_id, address, building, phone, email
-├── billing_zipcode, billing_prefecture_id, billing_address, billing_building
-├── billing_staff_email, billing_staff_name, billing_staff_phone
-├── trial_expired_on, extra_trial_expired_on
-├── force_enterprise_enabled, is_infomart_api, is_vendor_billing_on
-├── scalebase_customer_id, infomart_client_id, infomart_client_secret
-├── price_version
-└── （budget_start_month は未存在）
-
-monthly_budgets テーブル
-├── shop_id, year_month (YYYYMM integer), profit
-├── food_cost_rate, labor_cost_rate, sales_per_customer
-└── sales_ratio_lunch, sales_ratio_dinner, sales_ratio_food, sales_ratio_drink, sales_ratio_other
-
-monthly_cost_entries テーブル
-├── shop_id, year_month (YYYYMM integer)
-
-monthly_cost_items テーブル
-├── shop_id, name, immutable
-
-monthly_costs テーブル
-├── shop_id, value, ratio, monthly_cost_item_id, monthly_cost_entry_id
-
-shop_rents テーブル
-├── shop_id, rent_type, condition_type, fixed_rent, rate, threshold
-├── effective_from, effective_until, target_rate, min_guarantee
-
-※ closing_fiscal_year_settings テーブルは schema に存在しない（migrate_temp のみ、未デプロイ）
-```
-
-### 現状のコード構造
-
-| ファイル | 現状のロジック |
-|---------|---------------|
-| `annual_budget_summary.rb` | `generate_year_months_list` で店舗作成日〜now+3年の全月リスト生成。Sorbet型付き。`(1..12)` ハードコードは解消済み |
-| `monthly_budgets_controller.rb` | `start_month` / `end_month` パラメータで表示範囲を選択。デフォルトは今年1月〜12月 |
-| `budget_vs_actuals_controller.rb` | `set_term` concern で期間管理。`validate_budget_period` で月跨ぎ防止 |
-| `monthly_cost_histories_controller.rb` | `beginning_of_year` 〜 `end_of_year` でカレンダー年固定 |
-| `mq_analysis_controller.rb` | `set_month` で月選択。24ヶ月ヒストリー |
-| `companies_controller.rb` | `company_params` に budget_start_month なし |
-
-## 提案する変更
-
-### 1. DB Migration
+### 追加カラム（1つのみ）
 
 ```ruby
-class AddBudgetStartMonthToCompanies < ActiveRecord::Migration[7.2]
-  def change
-    add_column :companies, :budget_start_month, :integer, default: 1, comment: "予算開始月（1-12）"
-  end
-end
+# Migration
+add_column :companies, :budget_start_month, :integer, default: 1, comment: "予算開始月（1-12）"
 ```
 
-### 2. Company モデル追加（Sorbet対応）
+### 現在の companies テーブル（最新master）
 
-```ruby
-# typed: strict
-class Company < ApplicationRecord
-  validates :budget_start_month, inclusion: { in: 1..12 }, allow_nil: true
+| カラム | 型 | 用途 |
+|--------|---|------|
+| id, name, representive, zipcode, prefecture_id, address, building, phone, email | - | 基本情報 |
+| billing_zipcode, billing_prefecture_id, billing_address, billing_building | string/int | 請求先住所 |
+| billing_staff_email, billing_staff_name, billing_staff_phone | string | 請求担当者 |
+| trial_expired_on, extra_trial_expired_on | date | トライアル期限 |
+| force_enterprise_enabled, is_infomart_api, is_vendor_billing_on | boolean | 機能フラグ |
+| scalebase_customer_id, infomart_client_id, infomart_client_secret | string | 外部連携 |
+| price_version | string | 価格体系 |
+| **budget_start_month（新規追加）** | **integer** | **予算開始月（1-12）** |
 
-  sig { params(year: Integer).returns(T::Hash[Symbol, Integer]) }
-  def budget_period(year)
-    s = budget_start_month || 1
-    if s == 1
-      { from: year * 100 + 1, to: year * 100 + 12 }
-    else
-      { from: year * 100 + s, to: (year + 1) * 100 + (s - 1) }
-    end
-  end
+### 関連テーブル（変更なし）
 
-  sig { params(year: Integer).returns(T::Array[T::Hash[Symbol, T.untyped]]) }
-  def budget_months(year)
-    s = budget_start_month || 1
-    (0..11).map do |offset|
-      m = ((s - 1 + offset) % 12) + 1
-      y = offset < (13 - s) ? year : year + 1
-      { year: y, month: m, year_month: y * 100 + m, date: Time.zone.parse("#{y}-#{m}-01") }
-    end
-  end
-end
-```
+| テーブル | キーカラム | 予算期間との関係 |
+|---------|---------|--------------|
+| monthly_budgets | shop_id, year_month (YYYYMM int) | 年度範囲でフィルタ（デフォルト表示のみ変更） |
+| monthly_cost_entries | shop_id, year_month (YYYYMM int) | 年度範囲でフィルタ（費用履歴の表示範囲変更） |
+| monthly_costs | shop_id, value, ratio | 影響なし |
+| monthly_cost_items | shop_id, name, immutable | 影響なし |
+| shop_rents | shop_id, rent_type, effective_from/until | 影響なし |
 
-### 3. Companies Controller
+### 予算年度の計算
 
-```ruby
-def company_params
-  params.require(:company).permit(
-    :name, :representive, :zipcode, :prefecture_id,
-    :address, :building, :phone, :email,
-    :budget_start_month  # 追加
-  )
-end
-```
+| 設定 | 2026年度の範囲 | year_month値 |
+|------|-------------|-------------|
+| 1月（デフォルト） | 2026年1月 〜 2026年12月 | 202601 〜 202612 |
+| 4月 | 2026年4月 〜 2027年3月 | 202604 〜 202703 |
+| 10月 | 2026年10月 〜 2027年9月 | 202610 〜 202709 |
 
-## 影響範囲マップ
+## 全画面影響マップ
 
-### 会社スコープ
+### 会社スコープ — 影響あり（5画面）
 
-| 画面 | 種別 | 影響レベル | 影響を受ける項目 | 影響なしの項目 |
-|------|------|-----------|----------------|--------------|
-| **会社情報** | 設定 | **新規追加** | 予算開始月セレクト、予算期間プレビュー | 既存項目は全て維持 |
-| **予実対比** | 表示 | **中** | 月セレクタの年度グルーピング（任意） | set_termロジック、予算/実績データ |
+| # | メニュー | 画面 | 影響箇所 | 影響レベル |
+|---|--------|------|--------|---------|
+| 1 | 設定 | **会社情報** | 予算期間設定セクション新規追加（担当者メールアドレスの下） | **新規** |
+| 2 | 集計 | **年間予実対比** | 期間セレクタ「2026年1月 〜 2026年4月」→予算年度がデフォルトに | **高** |
+| 3 | 集計 | **予実対比** | 期間セレクタの月選択範囲 | **中** |
+| 4 | 集計 | **月次レポート** | 月セレクタのグルーピング | **低** |
+| 5 | 詳細分析 | **進捗分析** | 月セレクタ + 目標値（FD仕入費率、PA人件費率）はMonthlyBudget参照 | **中** |
 
-### 店舗スコープ — 設定機能
+### 会社スコープ — 影響なし（7画面）
 
-| 画面 | 影響レベル | 影響を受ける項目 | 影響なしの項目 |
-|------|-----------|----------------|--------------|
-| **予算設定: 一覧** | **高** | `generate_year_months_list` のデフォルト表示範囲（今年1月〜12月→予算年度）、start_month/end_monthのデフォルト値 | 予算データの取得・保存ロジック |
-| **費用設定: 履歴** | **高** | `beginning_of_year`/`end_of_year`→予算年度範囲、年ナビ | 費用データの取得・保存ロジック |
-| **費用設定: 一覧** | **低** | なし（当月表示のみ） | 全項目維持 |
+| メニュー | 画面 | 理由 |
+|--------|------|------|
+| 売上分析 | ABC分析、商品別売上、曜日別売上・客数、支払種別分析 | 日付範囲で実績データのみ |
+| 仕入分析 | 仕入先別分析、商品別分析 | 日付範囲で仕入データのみ |
+| 設定 | お支払い | 予算概念なし |
 
-### 店舗スコープ — 表示機能
+### 店舗スコープ — 影響あり（11画面）
 
-| 画面 | 影響レベル | 影響を受ける項目 | 影響なしの項目 |
-|------|-----------|----------------|--------------|
-| **年間予算サマリー** | **高** | `build_annual_budget_summary` の from_date/to_date デフォルト、`@display_year_months` の範囲 | 各月のデータ計算ロジック（年跨ぎ対応済み） |
-| **月次集計** | **中** | 月セレクタの年度グルーピング（任意） | 実績データ、目標比較 |
-| **感度分析** | **中** | 月セレクタの年度グルーピング（任意） | MQ分析データ |
-| **予算コントロール** | **低** | なし（月単位操作） | 日次カレンダー、バイアス設定 |
+| # | メニュー | 画面 | 影響箇所 | 影響レベル |
+|---|--------|------|--------|---------|
+| 1 | 予算設定 | **予算設定: 一覧（予算設定値）** | 期間セレクタ「2026年1月 〜 2026年12月」→予算年度がデフォルトに | **高** |
+| 2 | 予算設定 | **予算設定: 一覧（予算構成）** | 同上。費用項目の月列もセレクタに連動 | **高** |
+| 3 | 予算設定 | **月次予算設定** | 月セレクタのデフォルト | **低** |
+| 4 | 集計 | **年間予実対比（サマリー）** | 期間セレクタ「2026年1月 〜 2026年4月」→予算年度がデフォルトに | **高** |
+| 5 | 集計 | **年間予実対比（予実対比）** | 同上。費用明細行の月列も連動 | **高** |
+| 6 | 集計 | **予実対比** | 期間セレクタの月選択範囲 | **中** |
+| 7 | 集計 | **月次集計（MQ分析）** | 月セレクタのグルーピング。目標値はMonthlyBudget参照 | **中** |
+| 8 | 集計 | **月次レポート** | 月セレクタ + 12ヶ月テーブルの範囲 | **中** |
+| 9 | 集計 | **日次レポート** | 期間セレクタ | **低** |
+| 10 | 詳細分析 | **進捗分析** | 月セレクタ + 目標値（利益率、FD仕入費率、PA人件費率） | **中** |
+| 11 | 詳細分析 | **感度分析** | 月セレクタ + MonthlyBudget目標値（固定費等） | **中** |
+
+### 店舗スコープ — 影響なし（8画面）
+
+| メニュー | 画面 | 理由 |
+|--------|------|------|
+| 売上分析 | ABC分析 | 日付範囲で実績データのみ |
+| 詳細分析 | FD分析 | 日時範囲で実績データのみ |
+| 詳細分析 | 流入分析 | 予約/ウォークインの実績データのみ |
+| 設定 | 店舗情報、連携設定、休業日設定 | 予算概念なし |
+| 設定 | 費用設定（当月） | 当月表示のみ |
 
 ### フェーズ分け
 
-- **フェーズ1（必須）**: 会社情報（新規）、予算設定:一覧のデフォルト範囲、費用設定:履歴の年範囲
-- **フェーズ2（任意）**: 予実対比・月次集計・感度分析の月セレクタ年度グルーピング
+- **フェーズ1（必須 4画面）**: 会社情報（新規）、予算設定:一覧、年間予実対比（会社/店舗共通）
+- **フェーズ2（任意）**: 予実対比、月次集計、月次レポート、感度分析、進捗分析の月セレクタ改善
+
+## 設定UI仕様
+
+- **配置場所**: 会社情報画面（会社スコープ）
+- **配置位置**: 担当者メールアドレスの下（更新ボタンの上）に独立セクションとして追加
+- **設定項目**: 予算開始月（1月〜12月のセレクトボックス）
+- **デフォルト値**: 1（1月 = カレンダー年）
+- **連動プレビュー**: 選択変更で「予算期間: 2026年4月 〜 2027年3月」を表示
+- **権限**: 管理者（Master）/本部（Manager）のみ変更可能
 
 ## 修正対象ファイル（最新master準拠）
 
@@ -157,8 +126,29 @@ end
 
 1. `app/models/company.rb` — バリデーション、`budget_period`/`budget_months`メソッド追加（Sorbet対応）
 
-### 最新版で影響が軽減された点
+## Company モデル追加メソッド（Sorbet対応）
 
-- `annual_budget_summary.rb`: `(1..12)`ハードコードが既に解消。`generate_year_months_list`は任意のfrom/to日付を受け取れるため、年跨ぎ対応済み
-- `monthly_budgets_controller.rb`: `start_month`/`end_month`パラメータで任意範囲選択可能。デフォルト値のみ変更すればよい
-- `budget_vs_actuals_controller.rb`: `set_term` concernで期間管理がリファクタリング済み。月単位操作のため影響小
+```ruby
+validates :budget_start_month, inclusion: { in: 1..12 }, allow_nil: true
+
+sig { params(year: Integer).returns(T::Hash[Symbol, Integer]) }
+def budget_period(year)
+  s = budget_start_month || 1
+  if s == 1
+    { from: year * 100 + 1, to: year * 100 + 12 }
+  else
+    { from: year * 100 + s, to: (year + 1) * 100 + (s - 1) }
+  end
+end
+
+sig { params(year: Integer).returns(T::Array[T::Hash[Symbol, T.untyped]]) }
+def budget_months(year)
+  s = budget_start_month || 1
+  (0..11).map do |offset|
+    m = ((s - 1 + offset) % 12) + 1
+    y = offset < (13 - s) ? year : year + 1
+    { year: y, month: m, year_month: y * 100 + m,
+      date: Time.zone.parse("#{y}-#{m}-01") }
+  end
+end
+```

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>予算期間設定 仕様モック v1.2（最新master 2026-04-09 準拠）</title>
+  <title>予算期間設定 仕様モック v1.3（最新master 2026-04-09 準拠 / 全画面分析済み）</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; background: #f5f8fa; color: #333; }
@@ -157,8 +157,8 @@
 <div class="mock-nav">
   <div class="nav-top">
     <h1>予算期間設定 仕様モック</h1>
-    <span class="version">v1.2</span>
-    <span style="font-size:10px; color:rgba(255,255,255,0.4); margin-left:12px;">最新master 2026-04-09 準拠</span>
+    <span class="version">v1.3</span>
+    <span style="font-size:10px; color:rgba(255,255,255,0.4); margin-left:12px;">最新master 2026-04-09 準拠 / 全画面分析済み</span>
   </div>
   <div class="nav-tabs">
     <div class="nav-tab active" onclick="showPage('overview')">概要</div>
@@ -387,8 +387,8 @@
 <!-- ==================== Page 3: Impact Map ==================== -->
 <div id="page-impact" class="page">
   <div class="overview">
-    <h2>影響範囲マップ</h2>
-    <p class="subtitle">予算開始月の設定が影響する全画面・全項目の詳細</p>
+    <h2>影響範囲マップ（全画面分析済み）</h2>
+    <p class="subtitle">会社スコープ12画面・店舗スコープ19画面の影響を網羅的に分析</p>
 
     <!-- ===== Company Scope ===== -->
     <div class="scope-section">
@@ -474,6 +474,57 @@
           <div class="warn-box" style="margin-top:12px;">
             <strong>注意:</strong> 予実対比は月単位表示のため、予算開始月の変更自体はデータ取得に影響しない。ただし、月セレクタの選択肢を予算年度に合わせたい場合は修正が必要。
           </div>
+        </div>
+      </div>
+
+      <!-- 会社: 進捗分析 -->
+      <div class="screen-card">
+        <div class="screen-card-header" onclick="toggleCard(this)">
+          <h4>
+            <span class="impact-level medium">中</span>
+            進捗分析
+          </h4>
+          <span class="arrow">&#9654;</span>
+        </div>
+        <div class="screen-card-body">
+          <table class="item-table">
+            <tr><th>項目</th><th>種別</th><th>影響</th></tr>
+            <tr><td>月セレクタ「2026年04月」</td><td><span class="change-tag modify">修正</span>表示</td><td>予算年度でグルーピング（任意）</td></tr>
+            <tr><td>目標FD仕入費率 32.0%、PA人件費率 21.5%</td><td><span class="change-tag keep">維持</span>表示</td><td>MonthlyBudget月単位取得のため影響なし</td></tr>
+            <tr><td>利益進捗率・売上進捗率・日次推移</td><td><span class="change-tag keep">維持</span>表示</td><td>月内実績データのため影響なし</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 会社: 月次レポート -->
+      <div class="screen-card">
+        <div class="screen-card-header" onclick="toggleCard(this)">
+          <h4>
+            <span class="impact-level low">低</span>
+            月次レポート
+          </h4>
+          <span class="arrow">&#9654;</span>
+        </div>
+        <div class="screen-card-body">
+          <table class="item-table">
+            <tr><th>項目</th><th>種別</th><th>影響</th></tr>
+            <tr><td>月セレクタ「2026年04月」</td><td><span class="change-tag modify">修正</span>表示</td><td>予算年度でグルーピング（任意）</td></tr>
+            <tr><td>原価・原価率・店舗別内訳</td><td><span class="change-tag keep">維持</span>表示</td><td>月単位の実績データのため影響なし</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 会社: 影響なし -->
+      <div class="screen-card" style="opacity:0.6;">
+        <div class="screen-card-header" onclick="toggleCard(this)">
+          <h4>
+            <span class="impact-level none">影響なし</span>
+            売上分析（ABC・商品別・曜日別・支払種別）/ 仕入分析（仕入先別・商品別）/ お支払い
+          </h4>
+          <span class="arrow">&#9654;</span>
+        </div>
+        <div class="screen-card-body">
+          <p style="font-size:11px; color:#999;">日付範囲で実績データのみを表示する画面。予算データを参照しないため、予算開始月の設定は影響しない。</p>
         </div>
       </div>
     </div>
@@ -738,133 +789,101 @@
         </div>
       </div>
 
-      <!-- 9. 予算コントロール -->
+      <!-- 店舗: 感度分析 -->
       <div class="screen-card">
         <div class="screen-card-header" onclick="toggleCard(this)">
+          <h4><span class="impact-level medium">中</span> 感度分析</h4>
+          <span class="arrow">&#9654;</span>
+        </div>
+        <div class="screen-card-body">
+          <table class="item-table">
+            <tr><th>項目</th><th>種別</th><th>影響</th></tr>
+            <tr><td>月セレクタ「2026年04月」</td><td><span class="change-tag modify">修正</span>表示</td><td>予算年度でグルーピング（任意）</td></tr>
+            <tr><td>目標値（固定費 ¥2,272,200等）</td><td><span class="change-tag keep">維持</span>表示</td><td>MonthlyBudget月単位取得のため影響なし</td></tr>
+            <tr><td>P/V/Q/MQ計算ロジック</td><td><span class="change-tag keep">維持</span>ロジック</td><td>月単位の計算のため影響なし</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 店舗: 日次レポート -->
+      <div class="screen-card">
+        <div class="screen-card-header" onclick="toggleCard(this)">
+          <h4><span class="impact-level low">低</span> 日次レポート</h4>
+          <span class="arrow">&#9654;</span>
+        </div>
+        <div class="screen-card-body">
+          <table class="item-table">
+            <tr><th>項目</th><th>種別</th><th>影響</th></tr>
+            <tr><td>期間セレクタ「2026/04/01 - 2026/04/30」</td><td><span class="change-tag keep">維持</span>表示</td><td>月内の日次データ表示のため影響なし</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 店舗: 月次レポート -->
+      <div class="screen-card">
+        <div class="screen-card-header" onclick="toggleCard(this)">
+          <h4><span class="impact-level medium">中</span> 月次レポート</h4>
+          <span class="arrow">&#9654;</span>
+        </div>
+        <div class="screen-card-body">
+          <table class="item-table">
+            <tr><th>項目</th><th>種別</th><th>影響</th></tr>
+            <tr><td>月セレクタ「2026年04月」</td><td><span class="change-tag modify">修正</span>表示</td><td>予算年度でグルーピング（任意）</td></tr>
+            <tr><td>12ヶ月テーブル（2026年04月〜2025年05月）</td><td><span class="change-tag modify">修正</span>表示</td><td>予算年度の範囲で表示（任意）</td></tr>
+            <tr><td>原価・原価率・店舗別内訳</td><td><span class="change-tag keep">維持</span>表示</td><td>月単位の実績データのため影響なし</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 店舗: 影響なし -->
+      <div class="screen-card" style="opacity:0.6;">
+        <div class="screen-card-header" onclick="toggleCard(this)">
           <h4>
-            <span class="impact-level medium">中</span>
-            予算コントロール（日次カレンダー）
+            <span class="impact-level none">影響なし</span>
+            売上分析 ABC / FD分析 / 流入分析 / 店舗情報 / 連携設定 / 休業日設定 / 費用設定（当月）
           </h4>
           <span class="arrow">&#9654;</span>
         </div>
         <div class="screen-card-body">
-          <p style="font-size:11px; color:#666; margin-bottom:10px;">
-            <span class="file-path">app/controllers/manager/budget_controls_controller.rb</span>
-            <span class="file-path" style="margin-left:4px;">app/views/manager/budget_controls/calendar.html.haml</span>
-          </p>
-          <table class="item-table">
-            <tr><th>項目</th><th>種別</th><th>現状</th><th>変更後</th></tr>
-            <tr>
-              <td>月ナビゲーション（前月/翌月）</td>
-              <td><span class="change-tag keep">維持</span>表示</td>
-              <td colspan="2">月単位のナビゲーションのため影響なし</td>
-            </tr>
-            <tr>
-              <td>日次カレンダー表示</td>
-              <td><span class="change-tag keep">維持</span>表示</td>
-              <td colspan="2">月内の日次データ表示のため影響なし</td>
-            </tr>
-            <tr>
-              <td>月次バイアス設定</td>
-              <td><span class="change-tag keep">維持</span>設定</td>
-              <td colspan="2">月単位の設定のため影響なし</td>
-            </tr>
-          </table>
-          <div class="info-box" style="margin-top:12px;">
-            <strong>影響が中の理由:</strong> 画面のデータ自体は月単位で影響なしだが、月ナビゲーションの範囲を予算年度に制限する場合は修正が必要。
-          </div>
+          <p style="font-size:11px; color:#999;">日付範囲で実績データのみを表示する画面、または予算概念のない設定画面。予算開始月の設定は影響しない。</p>
         </div>
       </div>
     </div>
 
     <!-- ===== Summary Table ===== -->
-    <h3 class="section-title">影響サマリーテーブル</h3>
+    <h3 class="section-title">全画面サマリー（会社12画面 + 店舗19画面 = 31画面）</h3>
+
+    <h4 style="font-size:13px; margin:16px 0 8px; color:#5264f0;">会社スコープ（影響あり 5 / 影響なし 7）</h4>
     <table class="spec-table">
-      <tr>
-        <th>画面名</th>
-        <th>スコープ</th>
-        <th>種別</th>
-        <th>影響レベル</th>
-        <th>影響を受ける項目</th>
-        <th>影響なしの項目</th>
-      </tr>
-      <tr>
-        <td><strong>会社情報</strong></td>
-        <td><span class="impact-level" style="background:#eef0ff;color:#5264f0;">会社</span></td>
-        <td>設定</td>
-        <td><span class="impact-level new">新規</span></td>
-        <td>予算開始月セレクト、予算期間プレビュー</td>
-        <td>既存項目は全て維持</td>
-      </tr>
-      <tr>
-        <td><strong>予実対比</strong></td>
-        <td><span class="impact-level" style="background:#eef0ff;color:#5264f0;">会社</span></td>
-        <td>表示</td>
-        <td><span class="impact-level high">高</span></td>
-        <td>月セレクタの選択肢範囲</td>
-        <td>予算売上、FD仕入、人件費、固定費、利益</td>
-      </tr>
-      <tr>
-        <td><strong>予算設定: 一覧</strong></td>
-        <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
-        <td>設定</td>
-        <td><span class="impact-level high">高</span></td>
-        <td>デフォルト表示範囲（今年1月〜12月→予算年度）</td>
-        <td>generate_year_months_list、start/endパラメータ、予算データ</td>
-      </tr>
-      <tr>
-        <td><strong>年間予算サマリー</strong></td>
-        <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
-        <td>表示</td>
-        <td><span class="impact-level high">高</span></td>
-        <td>build_annual_budget_summaryのデフォルトfrom/to</td>
-        <td>月ループ、ヘッダ、データ計算（年跨ぎ対応済み）</td>
-      </tr>
-      <tr>
-        <td><strong>費用設定: 履歴</strong></td>
-        <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
-        <td>設定</td>
-        <td><span class="impact-level high">高</span></td>
-        <td>年ナビ、year_month範囲、月行の順序</td>
-        <td>費用予算額、比率表示</td>
-      </tr>
-      <tr>
-        <td><strong>費用設定: 一覧</strong></td>
-        <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
-        <td>設定</td>
-        <td><span class="impact-level low">低</span></td>
-        <td>（なし — 当月表示のみ）</td>
-        <td>全項目維持</td>
-      </tr>
-      <tr>
-        <td><strong>月次集計</strong></td>
-        <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
-        <td>表示</td>
-        <td><span class="impact-level medium">中</span></td>
-        <td>月セレクタのグルーピング（任意）</td>
-        <td>売上実績、客数、FD原価率、PA人件費率、目標比較</td>
-      </tr>
-      <tr>
-        <td><strong>感度分析</strong></td>
-        <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
-        <td>表示</td>
-        <td><span class="impact-level medium">中</span></td>
-        <td>月セレクタのグルーピング（任意）</td>
-        <td>MQ分析データ、計算ロジック</td>
-      </tr>
-      <tr>
-        <td><strong>予算コントロール</strong></td>
-        <td><span class="impact-level" style="background:#e8f8f5;color:#2ec4a5;">店舗</span></td>
-        <td>設定/表示</td>
-        <td><span class="impact-level medium">中</span></td>
-        <td>月ナビの範囲制限（任意）</td>
-        <td>日次カレンダー、バイアス設定</td>
-      </tr>
+      <tr><th>画面名</th><th>メニュー</th><th>影響レベル</th><th>影響箇所</th></tr>
+      <tr><td><strong>会社情報</strong></td><td>設定</td><td><span class="impact-level new">新規</span></td><td>予算開始月セレクト + プレビュー新規追加</td></tr>
+      <tr><td><strong>年間予実対比</strong></td><td>集計</td><td><span class="impact-level high">高</span></td><td>期間セレクタのデフォルト値</td></tr>
+      <tr><td><strong>予実対比</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>期間セレクタの月選択範囲</td></tr>
+      <tr><td><strong>進捗分析</strong></td><td>詳細分析</td><td><span class="impact-level medium">中</span></td><td>月セレクタのグルーピング</td></tr>
+      <tr><td><strong>月次レポート</strong></td><td>集計</td><td><span class="impact-level low">低</span></td><td>月セレクタのグルーピング</td></tr>
+      <tr style="color:#999;"><td>ABC分析 / 商品別売上 / 曜日別 / 支払種別 / 仕入先別 / 商品別仕入 / お支払い</td><td>-</td><td><span class="impact-level none">なし</span></td><td>-</td></tr>
+    </table>
+
+    <h4 style="font-size:13px; margin:16px 0 8px; color:#2ec4a5;">店舗スコープ（影響あり 11 / 影響なし 8）</h4>
+    <table class="spec-table">
+      <tr><th>画面名</th><th>メニュー</th><th>影響レベル</th><th>影響箇所</th></tr>
+      <tr><td><strong>予算設定: 一覧（設定値+構成）</strong></td><td>予算設定</td><td><span class="impact-level high">高</span></td><td>期間セレクタ「2026年1月〜2026年12月」のデフォルト値</td></tr>
+      <tr><td><strong>年間予実対比（サマリー+予実対比）</strong></td><td>集計</td><td><span class="impact-level high">高</span></td><td>期間セレクタのデフォルト値</td></tr>
+      <tr><td><strong>予実対比</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>期間セレクタの月選択範囲</td></tr>
+      <tr><td><strong>月次集計（MQ分析）</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>月セレクタのグルーピング</td></tr>
+      <tr><td><strong>月次レポート</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>月セレクタ + 12ヶ月テーブル範囲</td></tr>
+      <tr><td><strong>進捗分析</strong></td><td>詳細分析</td><td><span class="impact-level medium">中</span></td><td>月セレクタのグルーピング</td></tr>
+      <tr><td><strong>感度分析</strong></td><td>詳細分析</td><td><span class="impact-level medium">中</span></td><td>月セレクタのグルーピング</td></tr>
+      <tr><td><strong>月次予算設定</strong></td><td>予算設定</td><td><span class="impact-level low">低</span></td><td>月セレクタのデフォルト</td></tr>
+      <tr><td><strong>日次レポート</strong></td><td>集計</td><td><span class="impact-level low">低</span></td><td>期間セレクタ</td></tr>
+      <tr><td><strong>費用設定: 履歴</strong></td><td>設定</td><td><span class="impact-level high">高</span></td><td>年ナビ、year_month範囲</td></tr>
+      <tr><td><strong>費用設定: 一覧</strong></td><td>設定</td><td><span class="impact-level low">低</span></td><td>なし（当月表示のみ）</td></tr>
+      <tr style="color:#999;"><td>ABC分析 / FD分析 / 流入分析 / 店舗情報 / 連携設定 / 休業日設定 / 費用設定（当月）/ 予算コントロール</td><td>-</td><td><span class="impact-level none">なし</span></td><td>-</td></tr>
     </table>
 
     <div class="warn-box">
-      <strong>重要な判断ポイント:</strong> 月次集計・感度分析・予算コントロールは月単位操作のため、予算開始月による影響は「月セレクタの表示順序/グルーピング」のみ。必須ではなく、フェーズ2での対応も可能。<br>
-      <strong>フェーズ1必須:</strong> 会社情報（新規）、予算設定:一覧、年間予算サマリー、費用設定:履歴 の4画面。
+      <strong>フェーズ1（必須）:</strong> 会社情報（新規）、予算設定:一覧（店舗）、年間予実対比（会社/店舗）、費用設定:履歴（店舗）<br>
+      <strong>フェーズ2（任意）:</strong> 予実対比、月次集計、月次レポート、感度分析、進捗分析の月セレクタ年度グルーピング改善
     </div>
   </div>
 </div>
