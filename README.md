@@ -5,6 +5,7 @@
 > **制作:** [@suguru789987](https://github.com/suguru789987) (PdM)
 > **担当範囲:** 要件整理 / DB設計 / 18画面影響マップ / Sorbet型付きRubyメソッドの実装コード設計
 > **ツール:** Claude Code / HTML / CSS / Markdown (Ruby on Rails / Sorbet / HAML 準拠)
+> **🌐 Live Demo:** https://suguru789987.github.io/budget-period-setting/
 
 ---
 
