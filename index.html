@@ -157,7 +157,7 @@
       <strong>実装状況（2026-05-29 / フェーズ1）:</strong> 会社情報セレクト・予算設定一覧・年間予実対比・月次費用・月次費用履歴を実装済。
       期間ピッカーは<strong>YYYYMM絶対値（過去3会計年度〜当月・年度跨ぎ選択可）</strong>に刷新。
       <strong>デフォルト表示の使い分け:</strong> 予算設定一覧＝<strong>会計年度フル12ヶ月</strong>（先の予算を入力するため）／年間予実対比＝<strong>会計年度開始〜当月</strong>（実績は当月までのため）。
-      月セレクタの年度グルーピングはフェーズ2（現状はフラット降順）。
+      月セレクタはフラット降順で確定（年度グルーピングは不採用）。
     </div>
 
     <h3 class="section-title">全画面影響サマリー</h3>
@@ -395,7 +395,7 @@
         <div class="month-selector-demo">
           セレクタ選択肢（実装）: YYYYMM絶対値の<strong>降順フラットリスト</strong> 2026年05月, 2026年04月, 2026年03月, ... 2024年05月（過去3会計年度〜当月）
         </div>
-        <div class="callout green">データ表示は同一。月セレクタは絶対値の降順フラットリスト。<strong>年度グルーピングはフェーズ2（任意）</strong>。</div>
+        <div class="callout green">データ表示は同一。月セレクタは絶対値の降順フラットリストで<strong>確定（年度グルーピングは不採用）</strong>。</div>
       </div>
     </div>
   </div>
@@ -420,7 +420,7 @@
           <div class="kpi-card"><div class="kpi-label">PA人件費率</div><div style="display:flex; justify-content:space-between; align-items:baseline;"><span class="kpi-value">3.2%</span><span class="kpi-target">目標PA人件費率 4.8%</span></div></div>
         </div>
         <div class="month-selector-demo">
-          セレクタ選択肢（実装）: YYYYMM絶対値の<strong>降順フラットリスト</strong> 2026年05月, 2026年04月, ... 2024年05月（過去3会計年度〜当月）。年度グルーピングはフェーズ2
+          セレクタ選択肢（実装）: YYYYMM絶対値の<strong>降順フラットリスト</strong> 2026年05月, 2026年04月, ... 2024年05月（過去3会計年度〜当月）。年度グルーピングは不採用で確定
         </div>
         <div class="callout green">目標値（FD仕入費率29.2%等）はMonthlyBudgetから月単位取得のため変化なし。</div>
       </div>
@@ -450,7 +450,7 @@
           <div class="kpi-card"><div class="kpi-label">G 利益</div><div class="kpi-value">¥1,622,193</div></div>
         </div>
         <div class="month-selector-demo">
-          セレクタ選択肢（実装）: YYYYMM絶対値の<strong>降順フラットリスト</strong> 2026年05月, 2026年04月, ... 2024年05月（過去3会計年度〜当月）。年度グルーピングはフェーズ2
+          セレクタ選択肢（実装）: YYYYMM絶対値の<strong>降順フラットリスト</strong> 2026年05月, 2026年04月, ... 2024年05月（過去3会計年度〜当月）。年度グルーピングは不採用で確定
         </div>
         <div class="callout green">固定費¥2,272,200等はMonthlyBudget/MonthlyCostから月単位取得のため変化なし。</div>
       </div>
