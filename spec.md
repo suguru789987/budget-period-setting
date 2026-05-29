@@ -1,4 +1,4 @@
-# 予算期間設定 仕様書 v1.4（最新master 2026-04-09 準拠 / 全画面影響分析済み）
+# 予算期間設定 仕様書 v1.6（最新master 2026-04-09 準拠 / 全画面影響分析済み）
 
 ## 概要
 
@@ -67,7 +67,7 @@ add_column :companies, :budget_start_month, :integer, default: 1, comment: "予�
 |---|--------|------|--------|---------|
 | 1 | 設定 | **会社情報** | 予算期間設定セクション新規追加（担当者メールアドレスの下） | **新規** |
 | 2 | 集計 | **年間予実対比** | 期間セレクタ「2026年1月 〜 2026年4月」→予算年度がデフォルトに | **高** |
-| 3 | 集計 | **予実対比** | 期間セレクタの月選択範囲 | **中** |
+| 3 | 集計 | **予実対比** | セレクタの月選択肢の年度グルーピングのみ（月内の日次比較のためデータ不変） | **低** |
 | 4 | 集計 | **月次レポート** | 月セレクタのグルーピング | **低** |
 | 5 | 詳細分析 | **進捗分析** | 月セレクタ + 目標値（FD仕入費率、PA人件費率）はMonthlyBudget参照 | **中** |
 
@@ -79,7 +79,7 @@ add_column :companies, :budget_start_month, :integer, default: 1, comment: "予�
 | 仕入分析 | 仕入先別分析、商品別分析 | 日付範囲で仕入データのみ |
 | 設定 | お支払い | 予算概念なし |
 
-### 店舗スコープ — 影響あり（11画面）
+### 店舗スコープ — 影響あり（12画面）
 
 | # | メニュー | 画面 | 影響箇所 | 影響レベル |
 |---|--------|------|--------|---------|
@@ -88,12 +88,13 @@ add_column :companies, :budget_start_month, :integer, default: 1, comment: "予�
 | 3 | 予算設定 | **月次予算設定** | 月セレクタのデフォルト | **低** |
 | 4 | 集計 | **年間予実対比（サマリー）** | 期間セレクタ「2026年1月 〜 2026年4月」→予算年度がデフォルトに | **高** |
 | 5 | 集計 | **年間予実対比（予実対比）** | 同上。費用明細行の月列も連動 | **高** |
-| 6 | 集計 | **予実対比** | 期間セレクタの月選択範囲 | **中** |
+| 6 | 集計 | **予実対比** | セレクタの月選択肢の年度グルーピングのみ（月内の日次比較のためデータ不変） | **低** |
 | 7 | 集計 | **月次集計（MQ分析）** | 月セレクタのグルーピング。目標値はMonthlyBudget参照 | **中** |
 | 8 | 集計 | **月次レポート** | 月セレクタ + 12ヶ月テーブルの範囲 | **中** |
 | 9 | 集計 | **日次レポート** | 期間セレクタ | **低** |
 | 10 | 詳細分析 | **進捗分析** | 月セレクタ + 目標値（利益率、FD仕入費率、PA人件費率） | **中** |
 | 11 | 詳細分析 | **感度分析** | 月セレクタ + MonthlyBudget目標値（固定費等） | **中** |
+| 12 | 設定 | **費用設定: 履歴** | 年ナビ「前年/翌年」→「前年度/翌年度」、`monthly_cost_entries` のyear_monthクエリ範囲が予算年度に連動 | **高** |
 
 ### 店舗スコープ — 影響なし（8画面）
 
@@ -125,7 +126,7 @@ add_column :companies, :budget_start_month, :integer, default: 1, comment: "予�
 
 1. `app/controllers/manager/companies_controller.rb` — company_paramsに`:budget_start_month`追加
 2. `app/controllers/manager/shops/monthly_budgets_controller.rb` — indexのデフォルトstart/end計算をbudget_start_month起点に
-3. `app/controllers/concerns/annual_budget_summary.rb` — `generate_year_months_list`のデフォルト範囲に予算年度考慮
+3. `app/controllers/concerns/annual_budget_summary.rb` — デフォルト範囲に予算年度を考慮（対象メソッド名 `generate_year_months_list` / `build_annual_budget_summary` は**実コードで要確認**）
 4. `app/controllers/manager/shops/monthly_cost_histories_controller.rb` — `beginning_of_year`/`end_of_year`→予算年度範囲
 
 ### ビュー（2ファイル）

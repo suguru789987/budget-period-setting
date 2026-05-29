@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>予算期間設定 仕様モック v1.5</title>
+  <title>予算期間設定 仕様モック v1.6</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; background: #f5f8fa; color: #333; }
@@ -122,7 +122,7 @@
 <div class="mock-nav">
   <div class="nav-top">
     <h1>予算期間設定 仕様モック</h1>
-    <span class="version">v1.5</span>
+    <span class="version">v1.6</span>
     <span class="note">予算開始月: 4月設定時のイメージ</span>
   </div>
   <div class="nav-tabs">
@@ -160,7 +160,7 @@
       <tr><th>画面</th><th>メニュー</th><th>影響</th><th>変わるもの</th></tr>
       <tr><td><strong>会社情報</strong></td><td>設定</td><td><span class="impact-level new">新規</span></td><td>予算開始月セレクト + プレビュー追加</td></tr>
       <tr><td><strong>年間予実対比</strong></td><td>集計</td><td><span class="impact-level high">高</span></td><td>期間セレクタのデフォルト → 予算年度</td></tr>
-      <tr><td><strong>予実対比</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>期間セレクタの月選択範囲</td></tr>
+      <tr><td><strong>予実対比</strong></td><td>集計</td><td><span class="impact-level low">低</span></td><td>セレクタの月選択肢の年度グルーピングのみ（データ不変）</td></tr>
       <tr><td><strong>進捗分析</strong></td><td>詳細分析</td><td><span class="impact-level medium">中</span></td><td>月セレクタの年度グルーピング</td></tr>
       <tr><td><strong>月次レポート</strong></td><td>集計</td><td><span class="impact-level low">低</span></td><td>月セレクタのグルーピング</td></tr>
       <tr style="color:#999;"><td>ABC分析 / 商品別 / 曜日別 / 支払種別 / 仕入分析 / お支払い</td><td>-</td><td><span class="impact-level none">なし</span></td><td>-</td></tr>
@@ -172,14 +172,14 @@
       <tr><td><strong>予算設定: 一覧</strong></td><td>予算設定</td><td><span class="impact-level high">高</span></td><td>期間セレクタのデフォルト → 予算年度</td></tr>
       <tr><td><strong>年間予実対比</strong></td><td>集計</td><td><span class="impact-level high">高</span></td><td>期間セレクタのデフォルト → 予算年度</td></tr>
       <tr><td><strong>費用設定: 履歴</strong></td><td>設定</td><td><span class="impact-level high">高</span></td><td>年ナビ → 年度ナビ、表示範囲変更</td></tr>
-      <tr><td><strong>予実対比</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>期間セレクタの月選択範囲</td></tr>
+      <tr><td><strong>予実対比</strong></td><td>集計</td><td><span class="impact-level low">低</span></td><td>セレクタの月選択肢の年度グルーピングのみ（データ不変）</td></tr>
       <tr><td><strong>月次集計</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>月セレクタの年度グルーピング</td></tr>
       <tr><td><strong>月次レポート</strong></td><td>集計</td><td><span class="impact-level medium">中</span></td><td>月セレクタ + 12ヶ月テーブル範囲</td></tr>
       <tr><td><strong>進捗分析</strong></td><td>詳細分析</td><td><span class="impact-level medium">中</span></td><td>月セレクタの年度グルーピング</td></tr>
       <tr><td><strong>感度分析</strong></td><td>詳細分析</td><td><span class="impact-level medium">中</span></td><td>月セレクタの年度グルーピング</td></tr>
       <tr><td><strong>月次予算設定</strong></td><td>予算設定</td><td><span class="impact-level low">低</span></td><td>月セレクタのデフォルト</td></tr>
       <tr><td><strong>日次レポート</strong></td><td>集計</td><td><span class="impact-level low">低</span></td><td>期間セレクタ</td></tr>
-      <tr><td><strong>費用設定: 一覧</strong></td><td>設定</td><td><span class="impact-level low">低</span></td><td>なし（当月表示のみ）</td></tr>
+      <tr><td><strong>費用設定: 一覧</strong></td><td>設定</td><td><span class="impact-level none">なし</span></td><td>なし（当月表示のみ）</td></tr>
       <tr style="color:#999;"><td>ABC分析 / FD分析 / 流入分析 / 店舗情報 / 連携設定 / 休業日設定 / 地代家賃設定</td><td>-</td><td><span class="impact-level none">なし</span></td><td>-</td></tr>
     </table>
   </div>
@@ -493,8 +493,9 @@ end</code></pre>
       <tr><td><code>companies_controller.rb</code></td><td>company_paramsに<code>:budget_start_month</code>追加</td></tr>
       <tr><td><code>profile.html.haml</code></td><td>予算期間設定セクション追加</td></tr>
       <tr><td><code>monthly_budgets_controller.rb</code></td><td>indexのデフォルトstart/endを<code>budget_months</code>起点に</td></tr>
-      <tr><td><code>annual_budget_summary.rb</code></td><td><code>build_annual_budget_summary</code>のデフォルトfrom/to変更</td></tr>
+      <tr><td><code>annual_budget_summary.rb</code></td><td>デフォルトfrom/toを予算年度に変更 <span style="color:#e65100;">※対象メソッド名は実コードで要確認（<code>generate_year_months_list</code> / <code>build_annual_budget_summary</code>）</span></td></tr>
       <tr><td><code>monthly_cost_histories_controller.rb</code></td><td><code>beginning_of_year</code>→<code>budget_period</code></td></tr>
+      <tr><td><code>monthly_cost_histories/index.html.haml</code></td><td>年ナビ「前年/翌年」→「前年度/翌年度」表示変更</td></tr>
       <tr><td><code>company.rb</code></td><td>バリデーション + <code>budget_period</code>/<code>budget_months</code>追加</td></tr>
     </table>
 
@@ -511,7 +512,8 @@ function showPage(id) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   const tabs = document.querySelectorAll('.nav-tab');
-  const map = { 'overview':0, 'company-info':2, 'budget-list':4, 'annual':5, 'cost-history':6, 'bva':7, 'monthly':8, 'progress':9, 'sensitivity':10, 'code':12 };
+  // querySelectorAll('.nav-tab') は .nav-sep を含まないため、区切りを除いた連番でマップする
+  const map = { 'overview':0, 'company-info':1, 'budget-list':2, 'annual':3, 'cost-history':4, 'bva':5, 'monthly':6, 'progress':7, 'sensitivity':8, 'code':9 };
   if (tabs[map[id]]) tabs[map[id]].classList.add('active');
 }
 function updatePreview() {
